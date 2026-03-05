@@ -70,9 +70,6 @@
         let activeOrders = {}; // Stores data for tables: { "5": { type: 'order', items: [...], total: 500 } }
         let selectedTable = null;
         
-        // Connect to the same channel as the customer app
-        const channel = new BroadcastChannel('bacchus_admin_channel');
-
         // --- INITIALIZATION ---
         window.onload = function() {
             renderGrid();
@@ -125,35 +122,6 @@
                 })
                 .catch(err => console.error("Polling Error:", err));
         }
-
-        // --- HANDLE EVENTS ---
-        channel.onmessage = (event) => {
-            const data = event.data;
-            const tableNum = parseInt(data.table);
-
-            if (!tableNum) return;
-
-            playAlertSound();
-
-            if (data.type === 'NEW_ORDER') {
-                activeOrders[tableNum] = {
-                    type: 'ORDER',
-                    items: data.items,
-                    total: data.total,
-                    time: new Date().toLocaleTimeString()
-                };
-            } else if (data.type === 'CALL_WAITER') {
-                // Don't overwrite an existing food order with just a waiter call
-                if (!activeOrders[tableNum] || activeOrders[tableNum].type !== 'ORDER') {
-                    activeOrders[tableNum] = {
-                        type: 'WAITER',
-                        time: new Date().toLocaleTimeString()
-                    };
-                }
-            }
-
-            renderGrid();
-        };
 
         function handleTableClick(num) {
             if (!activeOrders[num]) return;
