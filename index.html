@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bacchus Inn - Digital Menu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .category-header { position: sticky; top: 0; background: white; z-index: 10; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.5s ease-out;
+        }
+        
+        .logo-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .logo-image:hover {
+            transform: scale(1.08) rotate(2deg);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo-text h1 {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo-text p {
+            font-size: 15px;
+            letter-spacing: 1px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .greek-pattern {
+            background-color: #329da8;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.2) 1px, transparent 0);
+            background-size: 16px 16px;
+        }
+
+        @keyframes rainbow { 
+            0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } 
+        }
+        .party-mode { animation: rainbow 2s linear infinite; }
+    </style>
+</head>
+<body class="pb-24">
+
+    <!-- Happy Hour Banner -->
+    <div class="bg-yellow-500 text-white text-center py-2 font-bold text-sm shadow-md">
+        <i class="fas fa-glass-cheers mr-2"></i> HAPPY HOUR! Special offers on Drinks (5 PM - 8 PM) 🍷
+    </div>
+
+    <!-- Header -->
+    <header class="greek-pattern text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="flex justify-between items-center">
+            <div class="logo-container">
+                <img src="assets/images.jpeg" alt="Bacchus Inn Logo" class="logo-image cursor-pointer" onclick="handleLogoClick()">
+                <div class="logo-text">
+                    <h1>Bacchus Inn</h1>
+                    <p>MANIPAL</p>
+                </div>
+            </div>
+            <div class="flex flex-col items-end gap-2">
+                <div class="bg-white text-[#329da8] px-3 py-1 rounded-full text-sm font-bold shadow-md">
+                    Table: <span id="table-display">--</span>
+                </div>
+                <button onclick="callWaiter()" class="bg-yellow-400 text-[#329da8] px-3 py-1 rounded-full text-xs font-bold shadow-md hover:bg-yellow-300 transition flex items-center">
+                    <i class="fas fa-bell mr-1"></i> Call Waiter
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu Type Toggles -->
+    <div class="px-4 pt-4 pb-2 bg-[#f8f9fa]">
+        <div class="flex gap-2 bg-white p-1 rounded-xl shadow-sm border border-gray-200">
+            <button onclick="setMenuType('food')" id="btn-food" class="flex-1 py-2 rounded-lg font-bold text-sm transition-all">Food 🍛</button>
+            <button onclick="setMenuType('bites')" id="btn-bites" class="flex-1 py-2 rounded-lg font-bold text-sm transition-all">Bar Bites 🍢</button>
+            <button onclick="setMenuType('bar')" id="btn-bar" class="flex-1 py-2 rounded-lg font-bold text-sm transition-all">Bar 🍷</button>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="px-4 pb-2 bg-[#f8f9fa]">
+        <div class="relative">
+            <input type="text" onkeyup="handleSearch(this.value)" placeholder="Search items..." class="w-full p-3 pl-10 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:border-[#329da8] focus:ring-1 focus:ring-[#329da8]">
+            <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- Diet Filter -->
+    <div class="px-4 pb-2 bg-[#f8f9fa] flex gap-2 overflow-x-auto hide-scrollbar">
+        <button onclick="setDietFilter('all')" id="btn-diet-all" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-gray-800 text-white border-gray-800 whitespace-nowrap">All</button>
+        <button onclick="setDietFilter('veg')" id="btn-diet-veg" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300 whitespace-nowrap">Veg <span class="text-green-600 text-xs">●</span></button>
+        <button onclick="setDietFilter('non-veg')" id="btn-diet-non-veg" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300 whitespace-nowrap">Non-Veg <span class="text-red-600 text-xs">●</span></button>
+        <button onclick="surpriseMe()" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200 whitespace-nowrap">Surprise Me ✨</button>
+        <button onclick="openDrunkMeter()" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200 whitespace-nowrap">Drunk-o-meter 🥴</button>
+    </div>
+
+    <!-- Category Nav -->
+    <div class="bg-white shadow-sm overflow-x-auto whitespace-nowrap p-3 hide-scrollbar sticky top-16 z-40" id="category-nav">
+        <!-- Categories injected here -->
+    </div>
+
+    <!-- Menu Items -->
+    <main class="p-4 max-w-2xl mx-auto" id="menu-container">
+        <!-- Menu items injected here -->
+    </main>
+
+    <!-- Floating Cart Button -->
+    <div id="cart-bar" class="fixed bottom-0 left-0 w-full bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 hidden z-50">
+        <div class="max-w-2xl mx-auto flex justify-between items-center">
+            <div>
+                <p class="text-gray-500 text-xs">Total Items: <span id="total-count">0</span></p>
+                <p class="text-[#329da8] font-bold text-lg">₹<span id="total-price">0</span></p>
+            </div>
+            <button onclick="openCartModal()" class="bg-[#329da8] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#26767e] transition">
+                View Cart <i class="fas fa-shopping-basket ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-end sm:items-center justify-center">
+        <div class="bg-white w-full max-w-md h-[80vh] sm:h-auto sm:rounded-lg rounded-t-2xl flex flex-col shadow-2xl">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <h2 class="text-lg font-bold">Your Order</h2>
+                <button onclick="closeCartModal()" class="text-gray-500 hover:text-[#329da8]"><i class="fas fa-times fa-lg"></i></button>
+            </div>
+            
+            <div class="p-4 overflow-y-auto flex-1" id="cart-items">
+                <!-- Cart items injected here -->
+                <p class="text-center text-gray-400 mt-10">Your cart is empty.</p>
+            </div>
+
+            <div class="p-4 border-t bg-gray-50">
+                <div class="flex justify-between mb-4 text-lg font-bold">
+                    <span>Grand Total</span>
+                    <span>₹<span id="modal-total">0</span></span>
+                </div>
+                <button onclick="placeOrder()" class="w-full bg-[#329da8] text-white py-3 rounded-lg font-bold hover:bg-[#26767e] shadow-lg">
+                    Place Order via WhatsApp <i class="fab fa-whatsapp ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Surprise Modal -->
+    <div id="surprise-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">✨ The Gods Have Chosen! ✨</h2>
+            <p class="text-gray-500 mb-6">A divine feast awaits you...</p>
+            
+            <div class="bg-purple-50 p-4 rounded-xl mb-4 border border-purple-100">
+                <p class="text-xs text-purple-600 font-bold uppercase tracking-wider mb-1">Food</p>
+                <h3 id="surprise-food" class="text-lg font-bold text-gray-800">--</h3>
+                <p id="surprise-food-price" class="text-sm text-gray-600">--</p>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
+                <p class="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">Drink</p>
+                <h3 id="surprise-drink" class="text-lg font-bold text-gray-800">--</h3>
+                <p id="surprise-drink-price" class="text-sm text-gray-600">--</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeSurpriseModal()" class="flex-1 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition">No, thanks</button>
+                <button onclick="acceptSurprise()" class="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg hover:opacity-90 transition">Accept Feast ⚡</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drunk-o-meter Modal -->
+    <div id="drunk-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center relative overflow-hidden border-4 border-[#329da8]">
+            <h2 class="text-2xl font-bold text-[#329da8] mb-4">🍷 Drunk-o-meter 🥴</h2>
+            <p class="text-gray-600 mb-6">Be honest with the Gods... how many drinks?</p>
+            
+            <div class="mb-8 px-4">
+                <input type="range" min="0" max="10" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#329da8]" oninput="updateDrunkMeter(this.value)">
+                <div class="flex justify-between text-xs text-gray-400 mt-2">
+                    <span>Sober</span>
+                    <span>Tipsy</span>
+                    <span>Dionysus</span>
+                </div>
+            </div>
+
+            <div id="drunk-result" class="bg-gray-50 p-4 rounded-xl mb-6 min-h-[80px] flex items-center justify-center transition-all duration-300">
+                <p class="text-lg font-bold text-gray-800 italic">"0 drinks? You are as dry as a desert!"</p>
+            </div>
+
+            <button onclick="closeDrunkMeter()" class="w-full py-3 rounded-xl font-bold text-white bg-[#329da8] hover:bg-[#26767e] transition shadow-lg">I'm Good! 👍</button>
+        </div>
+    </div>
+
+    <!-- Bacchus AI Chat Widget -->
+    <div id="chat-widget" class="fixed bottom-24 right-4 z-40">
+        <!-- Chat Button -->
+        <button onclick="toggleChat()" class="bg-[#329da8] text-white w-14 h-14 rounded-full shadow-xl hover:bg-[#26767e] transition-transform transform hover:scale-110 flex items-center justify-center border-2 border-white">
+            <i class="fas fa-comments text-2xl"></i>
+        </button>
+    </div>
+
+    <!-- Chat Window -->
+    <div id="chat-window" class="fixed bottom-40 right-4 w-80 bg-white rounded-2xl shadow-2xl hidden z-50 flex flex-col border border-gray-200 overflow-hidden h-96 font-sans">
+        <div class="bg-[#329da8] p-4 text-white flex justify-between items-center shadow-sm">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#329da8] font-bold border border-[#329da8]">B</div>
+                <span class="font-bold tracking-wide">Bacchus AI 🍇</span>
+            </div>
+            <button onclick="toggleChat()" class="text-white hover:text-gray-200 transition"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3"></div>
+        <div id="chat-quick-replies" class="px-3 py-2 bg-gray-50 flex gap-2 overflow-x-auto whitespace-nowrap hide-scrollbar border-t border-gray-100">
+            <!-- Quick replies are injected here -->
+        </div>
+        <div class="p-3 border-t bg-white flex gap-2">
+            <input type="text" id="chat-input" placeholder="Ask the God of Wine..." class="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-[#329da8] focus:ring-1 focus:ring-[#329da8]" onkeypress="handleChatInput(event)">
+            <button onclick="sendChatMessage()" class="bg-[#329da8] text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#26767e] transition shadow-sm"><i class="fas fa-paper-plane text-sm"></i></button>
+        </div>
+    </div>
+
+    <!-- Admin Footer -->
+    <div class="text-center py-8 text-gray-300 text-xs">
+        <button onclick="toggleAdmin()" class="hover:text-gray-500 transition">Admin Access</button>
+    </div>
+
+    <script>
+        // --- 1. DATA PREPARATION ---
+        // I have cleaned your provided data into a structured JSON format.
+        
+        // --- 2. STATE MANAGEMENT ---
+        let cart = {}; // Object to store items: { "Item Name": { price: 100, qty: 2 } }
+        let tableNumber = null;
+        let currentType = 'food';
+        let searchQuery = "";
+        let dietFilter = 'all';
+        let chatbotContext = null; // For multi-step chat conversations
+        let isAdmin = false;
+        let lastSuggestionTime = 0;
+        let logoClicks = 0;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Default Menu Data
+        let menuData = [
+            {
+                category: "Veg Soup",
+                items: [
+                    { name: "Tomato Soup", price: 90 },
+                    { name: "Veg Manchow Soup", price: 90 },
+                    { name: "Veg Sweet Corn Soup", price: 90 },
+                    { name: "Veg Hot n Sour Soup", price: 90 },
+                    { name: "Veg Clear Soup", price: 90 },
+                    { name: "Cream of Mushroom Soup", price: 90 },
+                    { name: "Tomyam Soup", price: 90 }
+                ]
+            },
+            {
+                category: "Non-Veg Soup",
+                items: [
+                    { name: "Chicken Manchow Soup", price: 100 },
+                    { name: "Chicken Sweet Corn Soup", price: 100 },
+                    { name: "Chicken Hot n Sour Soup", price: 100 },
+                    { name: "Chicken Clear Soup", price: 100 },
+                    { name: "Mutton Soup (All variants)", price: 110 },
+                    { name: "Chicken Tomyam Soup", price: 110 },
+                    { name: "Cream of Chicken Soup", price: 110 }
+                ]
+            },
+            {
+                category: "Veg Starters",
+                items: [
+                    { name: "Finger Chips", price: 95 },
+                    { name: "Masala Papad", price: 35 },
+                    { name: "Roasted & Fry Papad", price: 25 },
+                    { name: "Onion Baje", price: 100 },
+                    { name: "Onion Pakoda", price: 100 },
+                    { name: "Capsicum Pakoda", price: 110 },
+                    { name: "Paneer Pakoda", price: 130 },
+                    { name: "Gobi Chilly", price: 110 },
+                    { name: "Gobi Pepper Fry", price: 110 },
+                    { name: "Gobi 65", price: 110 },
+                    { name: "Paneer Manchurian", price: 140 },
+                    { name: "Paneer Chilly", price: 140 },
+                    { name: "Mushroom Manchurian", price: 140 },
+                    { name: "Mushroom Chilly", price: 140 },
+                    { name: "Paneer Hot Pan", price: 180 }
+                ]
+            },
+            {
+                category: "Veg Special",
+                items: [
+                    { name: "Gobi Ghee Roast", price: 150 },
+                    { name: "Paneer Ghee Roast", price: 180 },
+                    { name: "Mushroom Ghee Roast", price: 160 },
+                    { name: "Babycorn Ghee Roast", price: 160 },
+                    { name: "Bhendi Fry", price: 95 },
+                    { name: "Nurge (Drumstick) Fry", price: 95 },
+                    { name: "Peere Fry", price: 95 }
+                ]
+            },
+            {
+                category: "Chicken Starters",
+                items: [
+                    { name: "Chicken Manchurian (Bone)", price: 140 },
+                    { name: "Chicken Chilly (Bone)", price: 140 },
+                    { name: "Chicken 65", price: 190 },
+                    { name: "Chicken Ghee Roast (Full)", price: 380, bestSeller: true },
+                    { name: "Chicken Ghee Roast (Half)", price: 200, bestSeller: true },
+                    { name: "Chicken Lollypop (8 Pcs)", price: 140 },
+                    { name: "Chicken Butter Garlic", price: 190 }
+                ]
+            },
+            {
+                category: "Mutton Starters",
+                items: [
+                    { name: "Mutton Manchurian", price: 240 },
+                    { name: "Mutton Chilly", price: 240 },
+                    { name: "Mutton Sukka", price: 220 }
+                ]
+            },
+            {
+                category: "Tandoori",
+                items: [
+                    { name: "Chicken Tandoori (Full)", price: 350 },
+                    { name: "Chicken Tandoori (Half)", price: 190 },
+                    { name: "Chicken Tikka", price: 180 },
+                    { name: "Malai Kabab", price: 180 },
+                    { name: "Chicken Kalmi Kabab (2 Pcs)", price: 160 },
+                    { name: "Chicken Kalmi Kabab (1 Pc)", price: 90 },
+                    { name: "Paneer Tikka", price: 150 },
+                    { name: "Mushroom Tikka", price: 150 }
+                ]
+            },
+            {
+                category: "North Indian Veg",
+                items: [
+                    { name: "Dal Fry", price: 95 },
+                    { name: "Dal Tadka", price: 95 },
+                    { name: "Veg Kolhapuri", price: 125 },
+                    { name: "Veg Hyderabadi", price: 125 },
+                    { name: "Veg Kadai", price: 125 },
+                    { name: "Veg Handi", price: 125 },
+                    { name: "Paneer Butter Masala", price: 140 },
+                    { name: "Mushroom Masala", price: 140 }
+                ]
+            },
+            {
+                category: "Main Course",
+                items: [
+                    { name: "Veg Biriyani", price: 130, bestSeller: true },
+                    { name: "Egg Biriyani", price: 130, bestSeller: true },
+                    { name: "Chicken Biriyani (Full)", price: 150, bestSeller: true },
+                    { name: "Chicken Biriyani (Half)", price: 90, bestSeller: true },
+                    { name: "Mutton Biriyani (Full)", price: 220, bestSeller: true },
+                    { name: "Ghee Rice", price: 90 },
+                    { name: "Veg Pulav", price: 110 }
+                ]
+            },
+            {
+                category: "Chinese Main",
+                items: [
+                    { name: "Veg Fried Rice", price: 110 },
+                    { name: "Veg Schezwan Fried Rice", price: 120 },
+                    { name: "Chicken Fried Rice", price: 130 },
+                    { name: "Chicken Schezwan Fried Rice", price: 140 },
+                    { name: "Veg Hakka Noodles", price: 130 },
+                    { name: "Veg Schezwan Noodles", price: 130 },
+                    { name: "Chicken Hakka Noodles", price: 140 },
+                    { name: "Chicken Schezwan Noodles", price: 150 }
+                ]
+            },
+            {
+                category: "Breads",
+                items: [
+                    { name: "Roti", price: 25 },
+                    { name: "Naan", price: 30 },
+                    { name: "Kulcha", price: 30 },
+                    { name: "Garlic Naan", price: 60 },
+                    { name: "Cheese Naan", price: 70 }
+                ]
+            },
+            {
+                category: "South Indian",
+                items: [
+                    { name: "Anjal/Pomfret/Squid", price: "Seasonal" },
+                    { name: "Chicken Sukka (Full)", price: 100 },
+                    { name: "Chicken Sukka (Half)", price: 60 },
+                    { name: "Kori Rotti", price: 100 }
+                ]
+            },
+            {
+                category: "Beverages",
+                items: [
+                    { name: "Soft Drink (300ml)", price: 30 },
+                    { name: "Soft Drink (500ml)", price: 55 },
+                    { name: "Soft Drink (2 Ltr)", price: 150 },
+                    { name: "Kinley Water (1 Ltr)", price: 25 }
+                ]
+            },
+            {
+                category: "Bar: Cocktails",
+                items: [
+                    { 
+                        name: "Gimlet", 
+                        prices: [
+                            { size: 'Blueberry', price: 180 },
+                            { size: 'Bubblegum', price: 180 },
+                            { size: 'Guava', price: 180 }
+                        ] 
+                    }
+                ]
+            },
+            {
+                category: "Bar: Whisky (Regular)",
+                items: [
+                    { name: "Bagpiper", prices: [ { size: '30ml', price: 25 }, { size: '60ml', price: 40 }, { size: '90ml', price: 60 }, { size: '180ml', price: 120 }, { size: '750ml', price: 480 } ] },
+                    { name: "Officers Choice", prices: [ { size: '30ml', price: 25 }, { size: '60ml', price: 40 }, { size: '90ml', price: 60 }, { size: '180ml', price: 120 }, { size: '750ml', price: 480 } ] },
+                    { name: "Directors Special", prices: [ { size: '30ml', price: 30 }, { size: '60ml', price: 55 }, { size: '90ml', price: 80 }, { size: '180ml', price: 160 }, { size: '750ml', price: 640 } ] },
+                    { name: "DSP Black", prices: [ { size: '30ml', price: 30 }, { size: '60ml', price: 60 }, { size: '90ml', price: 90 }, { size: '180ml', price: 180 }, { size: '750ml', price: 720 } ] },
+                    { name: "Imperial Blue", prices: [ { size: '30ml', price: 35 }, { size: '60ml', price: 65 }, { size: '90ml', price: 100 }, { size: '180ml', price: 190 }, { size: '750ml', price: 760 } ] },
+                    { name: "Mc. Dowells No. 1", prices: [ { size: '30ml', price: 35 }, { size: '60ml', price: 65 }, { size: '90ml', price: 100 }, { size: '180ml', price: 190 }, { size: '750ml', price: 760 } ] },
+                    { name: "Mc. Dowells Luxury", prices: [ { size: '30ml', price: 35 }, { size: '60ml', price: 65 }, { size: '90ml', price: 100 }, { size: '180ml', price: 190 }, { size: '750ml', price: 760 } ] },
+                    { name: "Royal Challenge", prices: [ { size: '30ml', price: 50 }, { size: '60ml', price: 100 }, { size: '90ml', price: 150 }, { size: '180ml', price: 300 }, { size: '750ml', price: 1200 } ] },
+                    { name: "Royal Stag", prices: [ { size: '30ml', price: 50 }, { size: '60ml', price: 95 }, { size: '90ml', price: 145 }, { size: '180ml', price: 285 }, { size: '750ml', price: 1140 } ] },
+                    { name: "Signature", prices: [ { size: '30ml', price: 60 }, { size: '60ml', price: 115 }, { size: '90ml', price: 175 }, { size: '180ml', price: 345 }, { size: '750ml', price: 1380 } ] },
+                    { name: "Blenders Pride", prices: [ { size: '30ml', price: 70 }, { size: '60ml', price: 140 }, { size: '90ml', price: 210 }, { size: '180ml', price: 420 }, { size: '750ml', price: 1680 } ] },
+                    { name: "Antiquity Blue", prices: [ { size: '30ml', price: 70 }, { size: '60ml', price: 140 }, { size: '90ml', price: 210 }, { size: '180ml', price: 420 }, { size: '750ml', price: 1680 } ] }
+                ]
+            },
+            {
+                category: "Bar: Scotch",
+                items: [
+                    { name: "100 Pipers", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
+                    { name: "Black & White", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
+                    { name: "Black Dog 8yrs", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
+                    { name: "Teachers", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
+                    { name: "Vat 69", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
+                    { name: "Black Dog 12yrs", prices: [ { size: '30ml', price: 150 }, { size: '60ml', price: 300 }, { size: '90ml', price: 450 }, { size: '180ml', price: 900 }, { size: '750ml', price: 3600 } ] }
+                ]
+            },
+            {
+                category: "Bar: Rum, Vodka, Gin & Brandy",
+                items: [
+                    { name: "Kodays Rum", prices: [ { size: '30ml', price: 20 }, { size: '60ml', price: 35 }, { size: '90ml', price: 50 }, { size: '180ml', price: 100 }, { size: '750ml', price: 400 } ] },
+                    { name: "Old Monk", prices: [ { size: '30ml', price: 25 }, { size: '60ml', price: 45 }, { size: '90ml', price: 70 }, { size: '180ml', price: 135 }, { size: '750ml', price: 540 } ] },
+                    { name: "Mc. Dowells Rum", prices: [ { size: '30ml', price: 25 }, { size: '60ml', price: 45 }, { size: '90ml', price: 60 }, { size: '180ml', price: 120 }, { size: '750ml', price: 480 } ] },
+                    { name: "Bacardi White Rum", prices: [ { size: '30ml', price: 80 }, { size: '60ml', price: 160 }, { size: '90ml', price: 240 }, { size: '180ml', price: 480 }, { size: '750ml', price: 1920 } ] },
+                    { name: "Romonov Vodka", prices: [ { size: '30ml', price: 35 }, { size: '60ml', price: 65 }, { size: '90ml', price: 95 }, { size: '180ml', price: 190 }, { size: '750ml', price: 760 } ] },
+                    { name: "Smirnoff Vodka", prices: [ { size: '30ml', price: 70 }, { size: '60ml', price: 140 }, { size: '90ml', price: 210 }, { size: '180ml', price: 415 }, { size: '750ml', price: 1660 } ] },
+                    { name: "Blue Ribbon Gin", prices: [ { size: '30ml', price: 30 }, { size: '60ml', price: 60 }, { size: '90ml', price: 90 }, { size: '180ml', price: 180 }, { size: '750ml', price: 720 } ] },
+                    { name: "Mansion House Brandy", prices: [ { size: '30ml', price: 40 }, { size: '60ml', price: 75 }, { size: '90ml', price: 115 }, { size: '180ml', price: 225 }, { size: '750ml', price: 900 } ] },
+                    { name: "Mc. Dowells Brandy", prices: [ { size: '30ml', price: 30 }, { size: '60ml', price: 60 }, { size: '90ml', price: 90 }, { size: '180ml', price: 180 }, { size: '750ml', price: 720 } ] }
+                ]
+            }
+        ];
+
+        // --- 3. INITIALIZATION ---
+        window.onload = function() {
+            // Load from LocalStorage if available
+            const storedMenu = localStorage.getItem('bacchusMenuData');
+            if (storedMenu) {
+                menuData = JSON.parse(storedMenu);
+            }
+
+            // Assign Types to Categories
+            const categoryTypes = {
+                "Veg Soup": "food",
+                "Non-Veg Soup": "food",
+                "Veg Starters": "bites",
+                "Veg Special": "bites",
+                "Chicken Starters": "bites",
+                "Mutton Starters": "bites",
+                "Tandoori": "bites",
+                "North Indian Veg": "food",
+                "Main Course": "food",
+                "Chinese Main": "food",
+                "Breads": "food",
+                "South Indian": "food",
+                "Beverages": "bar",
+                "Bar: Cocktails": "bar",
+                "Bar: Whisky (Regular)": "bar",
+                "Bar: Scotch": "bar",
+                "Bar: Rum, Vodka, Gin & Brandy": "bar"
+            };
+            
+            // Helper to check if item is Veg
+            const isItemVeg = (catName, itemName) => {
+                const name = itemName.toLowerCase();
+                const cat = catName.toLowerCase();
+                
+                // Explicit Non-Veg keywords
+                const nvKeywords = ['chicken', 'mutton', 'egg', 'fish', 'prawn', 'squid', 'anjal', 'pomfret', 'kori rotti', 'non-veg', 'malai kabab'];
+                
+                if (nvKeywords.some(k => name.includes(k))) return false;
+                if (cat.includes('non-veg') || cat.includes('chicken') || cat.includes('mutton')) return false;
+                
+                return true;
+            };
+
+            menuData.forEach(cat => {
+                cat.type = categoryTypes[cat.category] || 'food';
+                cat.items.forEach(item => {
+                    item.isVeg = isItemVeg(cat.category, item.name);
+                });
+            });
+
+            // Get Table Number from URL (e.g., ?table=5)
+            const urlParams = new URLSearchParams(window.location.search);
+            tableNumber = urlParams.get('table');
+
+            if (!tableNumber) {
+                tableNumber = prompt("Please enter your Table Number:");
+                if(!tableNumber) tableNumber = "Walk-in";
+            }
+            document.getElementById('table-display').innerText = tableNumber;
+            
+            setMenuType('food');
+            setDietFilter('all');
+
+            // Auto-open chat after 5 seconds
+            setTimeout(() => {
+                const chatWindow = document.getElementById('chat-window');
+                if (chatWindow.classList.contains('hidden')) {
+                    toggleChat();
+                }
+            }, 5000);
+        };
+
+        // --- 4. RENDER FUNCTIONS ---
+        function setMenuType(type) {
+            currentType = type;
+            
+            // Update buttons styling
+            ['food', 'bites', 'bar'].forEach(t => {
+                const btn = document.getElementById(`btn-${t}`);
+                if (t === type) {
+                    btn.className = "flex-1 py-2 rounded-lg font-bold text-sm bg-[#329da8] text-white shadow-md transform scale-105 transition-all";
+                } else {
+                    btn.className = "flex-1 py-2 rounded-lg font-bold text-sm bg-white text-gray-500 hover:bg-gray-50 transition-all";
+                }
+            });
+
+            renderMenu();
+        }
+
+        function setDietFilter(type) {
+            dietFilter = type;
+            
+            // Reset all
+            document.getElementById('btn-diet-all').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300";
+            document.getElementById('btn-diet-veg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300";
+            document.getElementById('btn-diet-non-veg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300";
+
+            // Set Active
+            if (type === 'all') {
+                document.getElementById('btn-diet-all').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-gray-800 text-white border-gray-800";
+            } else if (type === 'veg') {
+                document.getElementById('btn-diet-veg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-green-600 text-white border-green-600";
+            } else if (type === 'non-veg') {
+                document.getElementById('btn-diet-non-veg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-red-600 text-white border-red-600";
+            }
+
+            renderMenu();
+        }
+
+        function handleSearch(query) {
+            searchQuery = query.toLowerCase();
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const navContainer = document.getElementById('category-nav');
+            const menuContainer = document.getElementById('menu-container');
+            
+            navContainer.innerHTML = "";
+            menuContainer.innerHTML = "";
+
+            menuData.forEach((cat, index) => {
+                if (cat.type !== currentType) return;
+
+                const filteredItems = cat.items.filter(item => {
+                    const matchesSearch = item.name.toLowerCase().includes(searchQuery);
+                    const matchesDiet = (dietFilter === 'all') || 
+                                        (dietFilter === 'veg' && item.isVeg) || 
+                                        (dietFilter === 'non-veg' && !item.isVeg);
+                    return matchesSearch && matchesDiet;
+                });
+                if (filteredItems.length === 0) return;
+
+                // Add to Nav
+                const navBtn = document.createElement('button');
+                navBtn.className = "px-4 py-2 mr-2 bg-gray-100 rounded-full text-sm font-medium hover:bg-[#329da8]/10 hover:text-[#329da8] transition";
+                navBtn.innerText = cat.category;
+                navBtn.onclick = () => document.getElementById(`cat-${index}`).scrollIntoView({behavior: 'smooth', block: 'start'});
+                navContainer.appendChild(navBtn);
+
+                // Add to Menu List
+                const catSection = document.createElement('div');
+                catSection.id = `cat-${index}`;
+                catSection.className = "mb-8 scroll-mt-32";
+                
+                const catTitle = document.createElement('h2');
+                catTitle.className = "text-xl font-bold text-gray-800 mb-4 border-b pb-2";
+                catTitle.innerText = cat.category;
+                catSection.appendChild(catTitle);
+
+                const itemsGrid = document.createElement('div');
+                itemsGrid.className = "grid gap-4";
+
+                // Admin Controls for Item
+                const getAdminControls = (catIdx, itemIdx) => {
+                    if (!isAdmin) return '';
+                    return `<div class="flex gap-2 ml-2 border-l pl-2 border-gray-200">
+                        <button onclick="editItem(${catIdx}, ${itemIdx})" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteItem(${catIdx}, ${itemIdx})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>`;
+                };
+
+                filteredItems.forEach(item => {
+                    const itemCard = document.createElement('div');
+                    itemCard.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-100";
+
+                    // Best Seller Badge Logic
+                    const bestSellerBadge = item.bestSeller ? 
+                        `<span class="ml-2 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wide shadow-sm whitespace-nowrap"><i class="fas fa-star mr-1"></i>Best Seller</span>` 
+                        : '';
+                    
+                    // Find original index for admin functions (since filteredItems might be a subset)
+                    const originalItemIndex = cat.items.findIndex(i => i.name === item.name);
+
+                    // Check if it's a bar item with multiple prices
+                    if (item.prices) {
+                        let pricesHTML = '';
+                        item.prices.forEach(p => {
+                            pricesHTML += `
+                                <div class="flex justify-between items-center py-2 border-b last:border-b-0">
+                                    <div class="flex-1">
+                                        <span class="font-semibold text-gray-700 w-16 inline-block">${p.size}</span>
+                                        <span class="text-[#329da8] font-medium ml-2">₹${p.price}</span>
+                                    </div>
+                                    <button onclick="addToCart('${item.name} (${p.size})', ${p.price})" class="bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-3 py-1 rounded-lg text-xs font-bold hover:bg-[#329da8] hover:text-white transition">
+                                        ADD +
+                                    </button>
+                                </div>
+                            `;
+                        });
+
+                        itemCard.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-gray-800 mb-2 text-lg flex items-center flex-wrap gap-2">${item.name}${bestSellerBadge}</h3>
+                                ${getAdminControls(index, originalItemIndex)}
+                            </div>
+                            <div class="mt-2">${pricesHTML}</div>
+                        `;
+                    } else { // This is a regular food item
+                        const priceDisplay = item.price === "Seasonal" ? "Seasonal" : `₹${item.price}`;
+                        const isAddable = item.price !== "Seasonal";
+                        
+                        // Icon generation
+                        let vegIcon = '';
+                        if (cat.type !== 'bar') {
+                            const colorClass = item.isVeg ? 'border-green-600' : 'border-red-600';
+                            const dotClass = item.isVeg ? 'bg-green-600' : 'bg-red-600';
+                            vegIcon = `<div class="border ${colorClass} p-0.5 rounded-sm inline-flex items-center justify-center mr-2 w-4 h-4 align-middle flex-shrink-0"><div class="w-2 h-2 ${dotClass} rounded-full"></div></div>`;
+                        }
+
+                        itemCard.classList.add('flex', 'justify-between', 'items-center');
+
+                        itemCard.innerHTML = `
+                            <div class="flex-1 pr-2">
+                                <h3 class="font-semibold text-gray-800 flex items-center flex-wrap gap-y-1">${vegIcon}${item.name}${bestSellerBadge} ${getAdminControls(index, originalItemIndex)}</h3>
+                                <p class="text-[#329da8] font-medium">${priceDisplay}</p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                ${isAddable ? `<button onclick="addToCart('${item.name}', ${item.price})" class="bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#329da8] hover:text-white transition">ADD +</button>` : '<span class="text-xs text-gray-500">Ask Server</span>'}
+                            </div>
+                        `;
+                    }
+                    itemsGrid.appendChild(itemCard);
+                });
+
+                if (isAdmin) {
+                    const addBtn = document.createElement('button');
+                    addBtn.className = "w-full py-3 border-2 border-dashed border-gray-300 text-gray-500 rounded-lg mt-4 hover:bg-gray-50 font-bold";
+                    addBtn.innerHTML = `<i class="fas fa-plus mr-2"></i> Add Item to ${cat.category}`;
+                    addBtn.onclick = () => addItem(index);
+                    catSection.appendChild(addBtn);
+                }
+
+                catSection.appendChild(itemsGrid);
+                menuContainer.appendChild(catSection);
+            });
+        }
+
+        function renderCart() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            cartItemsContainer.innerHTML = "";
+            let total = 0;
+            let count = 0;
+            let totalDrinks = 0;
+
+            if (Object.keys(cart).length === 0) {
+                cartItemsContainer.innerHTML = '<p class="text-center text-gray-400 mt-10">Your cart is empty.</p>';
+                document.getElementById('cart-bar').classList.add('hidden');
+            } else {
+                document.getElementById('cart-bar').classList.remove('hidden');
+            }
+
+            for (const [name, item] of Object.entries(cart)) {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+                count += item.qty;
+                if (item.isDrink) {
+                    totalDrinks += item.qty;
+                }
+
+                const row = document.createElement('div');
+                row.className = "flex justify-between items-center mb-4 border-b pb-2";
+                row.innerHTML = `
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-sm">${name}</h4>
+                        <p class="text-xs text-gray-500">₹${item.price} x ${item.qty}</p>
+                    </div>
+                    <div class="flex items-center bg-gray-100 rounded-lg">
+                        <button onclick="updateQty('${name}', -1)" class="px-3 py-1 text-[#329da8] font-bold">-</button>
+                        <span class="px-2 text-sm font-semibold">${item.qty}</span>
+                        <button onclick="updateQty('${name}', 1)" class="px-3 py-1 text-[#26767e] font-bold">+</button>
+                    </div>
+                    <div class="ml-4 font-bold text-sm">₹${itemTotal}</div>
+                `;
+                cartItemsContainer.appendChild(row);
+            }
+
+            // Update Drunk-o-meter
+            const slider = document.querySelector('#drunk-modal input[type="range"]');
+            if (slider) {
+                const sliderValue = Math.min(totalDrinks, 10); // Clamp to max 10
+                slider.value = sliderValue;
+                // Only update the text if the modal is open to avoid weird background calculations
+                if (!document.getElementById('drunk-modal').classList.contains('hidden')) {
+                    updateDrunkMeter(sliderValue);
+                }
+            }
+
+            // Update UI Totals
+            document.getElementById('total-count').innerText = count;
+            document.getElementById('total-price').innerText = total;
+            document.getElementById('modal-total').innerText = total;
+        }
+
+        // --- 5. LOGIC FUNCTIONS ---
+        function addToCart(name, price) {
+            // Find if the item is a drink
+            let isDrink = false;
+            const simpleName = name.split(' (')[0]; // "Gimlet (Blueberry)" -> "Gimlet"
+
+            for (const cat of menuData) {
+                if (cat.type === 'bar') {
+                    if (cat.items.some(item => item.name === simpleName)) {
+                        isDrink = true;
+                        break;
+                    }
+                }
+            }
+            // Chatbot custom cocktails and recommendations
+            if (name.toLowerCase().includes('elixir') || name.toLowerCase().includes('gimlet') || name.toLowerCase().includes('shot')) {
+                isDrink = true;
+            }
+
+            if (cart[name]) {
+                cart[name].qty++;
+            } else {
+                cart[name] = { price: price, qty: 1, isDrink: isDrink };
+            }
+            // Visual feedback
+            if (typeof event !== 'undefined' && event && event.target) {
+                const btn = event.target;
+                const originalText = btn.innerText;
+                btn.innerText = "Added";
+                btn.classList.add("bg-[#329da8]", "text-white", "border-[#329da8]");
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove("bg-[#329da8]", "text-white", "border-[#329da8]");
+                }, 500);
+            }
+
+            renderCart();
+            playPopSound();
+            if (isDrink) suggestPairing(name);
+        }
+
+        function updateQty(name, change) {
+            if (cart[name]) {
+                cart[name].qty += change;
+                if (cart[name].qty <= 0) {
+                    delete cart[name];
+                }
+            }
+            renderCart();
+        }
+
+        function openCartModal() {
+            document.getElementById('cart-modal').classList.remove('hidden');
+        }
+
+        function closeCartModal() {
+            document.getElementById('cart-modal').classList.add('hidden');
+        }
+
+        function callWaiter() {
+            let message = `*Service Request - Bacchus Inn*\n`;
+            message += `Table No: *${tableNumber}*\n`;
+            message += `---------------------------\n`;
+            message += `Customer is requesting a waiter.`;
+
+            // Encode for URL
+            const encodedMsg = encodeURIComponent(message);
+            
+            // Restaurant's WhatsApp Number
+            const restaurantNumber = "919731772881"; 
+            
+            window.open(`https://wa.me/${restaurantNumber}?text=${encodedMsg}`, '_blank');
+        }
+
+        function placeOrder() {
+            if (Object.keys(cart).length === 0) return;
+
+            playSuccessSound();
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+            let message = `*New Order - Bacchus Inn*\n`;
+            message += `Table No: *${tableNumber}*\n`;
+            message += `---------------------------\n`;
+            
+            let total = 0;
+            for (const [name, item] of Object.entries(cart)) {
+                message += `${item.qty} x ${name} = ₹${item.price * item.qty}\n`;
+                total += item.price * item.qty;
+            }
+            
+            message += `---------------------------\n`;
+            message += `*Total: ₹${total}*`;
+
+            // Encode for URL
+            const encodedMsg = encodeURIComponent(message);
+            
+            // Replace this number with the Restaurant's WhatsApp Number
+            const restaurantNumber = "919731772881"; 
+            
+            setTimeout(() => {
+                window.open(`https://wa.me/${restaurantNumber}?text=${encodedMsg}`, '_blank');
+            }, 1000);
+        }
+
+        // --- 6. CHATBOT LOGIC ---
+
+        const defaultQuickReplies = [
+            { text: 'Recommend Food 🍗', value: 'Recommend me food' },
+            { text: 'Show Drinks 🍷', value: 'Show Drinks' },
+            { text: 'Custom Cocktail 🧪', value: 'Make my own custom cocktail' },
+            { text: 'Spicy options? 🔥', value: 'Spicy options?' },
+            { text: 'Veg options? 🥦', value: 'Veg options?' }
+        ];
+
+        function setQuickReplies(replies) {
+            const container = document.getElementById('chat-quick-replies');
+            container.innerHTML = '';
+            replies.forEach(reply => {
+                const button = document.createElement('button');
+                button.className = "px-3 py-1 bg-white border border-[#329da8] rounded-full text-xs text-[#329da8] hover:bg-[#329da8] hover:text-white transition shadow-sm flex-shrink-0";
+                button.innerText = reply.text;
+                button.onclick = () => sendQuickReply(reply.value);
+                container.appendChild(button);
+            });
+        }
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('chat-window');
+            chatWindow.classList.toggle('hidden');
+            if (!chatWindow.classList.contains('hidden')) {
+                document.getElementById('chat-input').focus();
+                const msgContainer = document.getElementById('chat-messages');
+                if (msgContainer.children.length === 0) {
+                    addBotMessage("Greetings, mortal! 🍷 I am Bacchus. Seek you a feast, a strong elixir, or divine recommendations?");
+                    setQuickReplies(defaultQuickReplies);
+                }
+            }
+        }
+
+        function handleChatInput(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        function sendQuickReply(text) {
+            const input = document.getElementById('chat-input');
+            input.value = text;
+            sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            addUserMessage(msg);
+            input.value = '';
+
+            setTimeout(() => {
+                const response = generateBacchusResponse(msg);
+                addBotMessage(response);
+            }, 600);
+        }
+
+        function addUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = "flex justify-end";
+            div.innerHTML = `<div class="bg-[#329da8] text-white px-4 py-2 rounded-l-xl rounded-tr-xl max-w-[85%] text-sm shadow-sm">${text}</div>`;
+            document.getElementById('chat-messages').appendChild(div);
+            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+        }
+
+        function addBotMessage(text) {
+            const div = document.createElement('div');
+            div.className = "flex justify-start";
+            div.innerHTML = `<div class="bg-white border border-gray-200 text-gray-800 px-4 py-2 rounded-r-xl rounded-tl-xl max-w-[85%] text-sm shadow-sm">${text}</div>`;
+            document.getElementById('chat-messages').appendChild(div);
+            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+        }
+
+        function generateBacchusResponse(input) {
+            const lower = input.toLowerCase();
+
+            // --- Contextual Replies ---
+            if (chatbotContext) {
+                const contextAction = chatbotContext.action;
+                const contextData = chatbotContext.data;
+                chatbotContext = null; // Consume context
+                setQuickReplies(defaultQuickReplies); // Reset quick replies
+
+                if (contextAction === 'confirm_add_to_cart') {
+                    if (lower.includes('yes')) {
+                        addToCart(contextData.name, contextData.price);
+                        return `Excellent choice! I have added **${contextData.name}** to your divine order. What other delights do you seek?`;
+                    } else {
+                        return "As you wish, mortal. What other divine flavors can I entice you with?";
+                    }
+                }
+                
+                if (contextAction === 'confirm_gimlet') {
+                     if (lower.includes('shot') || lower.includes('stronger')) {
+                        addToCart('Blueberry Gimlet', 250); // Invented price
+                        addToCart('Extra Shot White Rum', 80); // Based on Bacardi 30ml
+                        return `A choice worthy of Dionysus himself! I have added a **Blueberry Gimlet** with an **extra shot of White Rum**. Prepare yourself!`;
+                     } else if (lower.includes('yes')) {
+                        addToCart('Blueberry Gimlet', 250);
+                        return `A fine choice! One **Blueberry Gimlet** has been added to your order. Enjoy the nectar of the gods!`;
+                     } else {
+                        return "A pity! Perhaps another time. What else may I offer?";
+                     }
+                }
+
+                if (contextAction === 'custom_cocktail_spirit') {
+                    const spirit = input.charAt(0).toUpperCase() + input.slice(1);
+                    chatbotContext = {
+                        action: 'custom_cocktail_flavor',
+                        data: { spirit: spirit }
+                    };
+                    setQuickReplies([
+                        { text: 'Sweet 🍬', value: 'Sweet' },
+                        { text: 'Sour 🍋', value: 'Sour' },
+                        { text: 'Spicy 🌶️', value: 'Spicy' },
+                        { text: 'Fruity 🍓', value: 'Fruity' }
+                    ]);
+                    return `Ah, **${spirit}**! A potent choice. Now, what essence shall this potion possess?`;
+                }
+
+                if (contextAction === 'custom_cocktail_flavor') {
+                    const flavor = input.charAt(0).toUpperCase() + input.slice(1);
+                    const spirit = contextData.spirit;
+                    const drinkName = `Custom ${flavor} ${spirit} Elixir`;
+                    
+                    chatbotContext = {
+                        action: 'confirm_add_to_cart',
+                        data: { name: drinkName, price: 350 }
+                    };
+                    setQuickReplies([
+                        { text: 'Yes, create it! 🧪', value: 'Yes' },
+                        { text: 'No, start over', value: 'No' }
+                    ]);
+                    return `I have envisioned it... The **${drinkName}**! A drink to rival the gods. Shall I add this masterpiece to your order for ₹350?`;
+                }
+            }
+
+            // --- Standard Replies ---
+            if (lower.includes('hello') || lower.includes('hi')) return "Hail, traveler! Ready to feast like the gods? 🍇";
+            
+            if (lower.includes('recommend') || lower.includes('best') || lower.includes('suggest')) {
+                const recommendedItem = { name: 'Chicken Ghee Roast (Half)', price: 200 };
+                chatbotContext = {
+                    action: 'confirm_add_to_cart',
+                    data: recommendedItem
+                };
+                setQuickReplies([
+                    { text: 'Yes, add it!', value: 'Yes' },
+                    { text: 'No, thanks', value: 'No' }
+                ]);
+                return `By Zeus! You must try the **Chicken Ghee Roast**! It is legendary. Shall I add the (Half) portion to your order for the gods?`;
+            }
+
+            if (lower.includes('veg')) return "For the herbivores? The **Paneer Ghee Roast** is divine, or the **Mushroom Masala**! 🍄";
+            
+            if (lower.includes('drink') || lower.includes('alcohol') || lower.includes('gimlet')) {
+                chatbotContext = { action: 'confirm_gimlet', data: {} };
+                setQuickReplies([
+                    { text: 'Yes, add Gimlet', value: 'Yes, add it' },
+                    { text: 'Make it stronger!', value: 'Yes and add a shot' },
+                    { text: 'No, thanks', value: 'No' }
+                ]);
+                return "Ah, a connoisseur of fine spirits! I recommend the **Bubblegum or Blueberry Gimlet**, a truly ambrosial concoction. Feeling bold, mortal? We can test your tolerance to the gods by making it stronger with a shot of **White Rum** or **Vodka**! What say you? 😉";
+            }
+
+            if (lower.includes('custom') || lower.includes('create') || lower.includes('make my own')) {
+                chatbotContext = { action: 'custom_cocktail_spirit', data: {} };
+                setQuickReplies([
+                    { text: 'Vodka 🍸', value: 'Vodka' },
+                    { text: 'Rum 🏴‍☠️', value: 'Rum' },
+                    { text: 'Whisky 🥃', value: 'Whisky' },
+                    { text: 'Gin 🌲', value: 'Gin' }
+                ]);
+                return "A creative soul! Let us forge a drink worthy of Olympus. First, choose your base spirit.";
+            }
+
+            if (lower.includes('joke') || lower.includes('funny') || lower.includes('laugh')) {
+                const jokes = [
+                    "Why did the grape stop in the middle of the road? Because he ran out of juice! 🍇",
+                    "What did the sushi say to the bee? Wasabi! 🍣",
+                    "I told my wife she was drawing her eyebrows too high. She looked surprised. 🤨",
+                    "Why don't eggs tell jokes? They'd crack each other up! 🥚",
+                    "I'm on a seafood diet. I see food and I eat it! 🦀",
+                    "What do you call a fake noodle? An impasta! 🍝",
+                    "Why did the tomato turn red? Because it saw the salad dressing! 🥗"
+                ];
+                return jokes[Math.floor(Math.random() * jokes.length)];
+            }
+
+            if (lower.includes('spicy') || lower.includes('hot')) return "You seek fire? 🔥 The **Chicken Chilly** or **Schezwan Fried Rice** will test your spirit!";
+            if (lower.includes('price') || lower.includes('cost') || lower.includes('much')) return "A small tribute for such a feast! The prices are listed on the menu scrolls above.";
+            if (lower.includes('thank')) return "Go forth and feast! 🍇";
+            if (lower.includes('bye')) return "Farewell, mortal! May your cup never be empty.";
+            return "My vision is clouded by wine... I did not understand. Ask about food, drinks, or recommendations!";
+        }
+
+        function suggestPairing(drinkName) {
+            const now = Date.now();
+            if (now - lastSuggestionTime < 10000) return; // 10 second cooldown to prevent spam
+
+            const lower = drinkName.toLowerCase();
+            let suggestion = null;
+
+            // Whisky/Scotch/Brandy/Rum
+            if (lower.includes('bagpiper') || lower.includes('officers') || lower.includes('directors') || lower.includes('dsp') || lower.includes('imperial') || lower.includes('mcdowell') || lower.includes('royal') || lower.includes('signature') || lower.includes('blenders') || lower.includes('antiquity') || lower.includes('pipers') || lower.includes('black & white') || lower.includes('black dog') || lower.includes('teachers') || lower.includes('vat 69') || lower.includes('mansion house') || lower.includes('rum') || lower.includes('old monk') || lower.includes('bacardi') || lower.includes('kodays')) {
+                 suggestion = { name: 'Chicken Ghee Roast (Half)', price: 200, reason: "The rich spice of Ghee Roast balances your spirit perfectly!" };
+            } 
+            // Vodka/Gin/Cocktails
+            else if (lower.includes('vodka') || lower.includes('romonov') || lower.includes('smirnoff') || lower.includes('gin') || lower.includes('blue ribbon') || lower.includes('gimlet') || lower.includes('elixir')) {
+                 suggestion = { name: 'Chicken Chilly (Bone)', price: 140, reason: "Spice up your drink with some zesty Chicken Chilly!" };
+            }
+
+            if (suggestion) {
+                if (cart[suggestion.name]) return; // Don't suggest if already in cart
+
+                lastSuggestionTime = now;
+                
+                // Open chat if hidden
+                const chatWindow = document.getElementById('chat-window');
+                if (chatWindow.classList.contains('hidden')) {
+                    toggleChat();
+                }
+
+                setTimeout(() => {
+                    addBotMessage(`Excellent choice with the **${drinkName}**! 🍷 ${suggestion.reason} Shall I add **${suggestion.name}** to your order?`);
+                    
+                    chatbotContext = {
+                        action: 'confirm_add_to_cart',
+                        data: { name: suggestion.name, price: suggestion.price }
+                    };
+                    
+                    setQuickReplies([
+                        { text: 'Yes, please! 🍗', value: 'Yes' },
+                        { text: 'No, thanks', value: 'No' }
+                    ]);
+                }, 1000);
+            }
+        }
+
+        // --- 7. SURPRISE ME LOGIC ---
+        let surpriseSelection = null;
+
+        function surpriseMe() {
+            const foodItems = [];
+            const drinkItems = [];
+
+            menuData.forEach(cat => {
+                if (cat.type === 'food' || cat.type === 'bites') {
+                    cat.items.forEach(item => foodItems.push(item));
+                } else if (cat.type === 'bar') {
+                    cat.items.forEach(item => drinkItems.push(item));
+                }
+            });
+
+            if (foodItems.length === 0 || drinkItems.length === 0) return;
+
+            const randomFood = foodItems[Math.floor(Math.random() * foodItems.length)];
+            const randomDrink = drinkItems[Math.floor(Math.random() * drinkItems.length)];
+
+            // Prepare Food Data
+            let foodName = randomFood.name;
+            let foodPriceDisplay = randomFood.price === "Seasonal" ? "Seasonal" : `₹${randomFood.price}`;
+            let foodPriceVal = randomFood.price === "Seasonal" ? 0 : randomFood.price;
+
+            // Prepare Drink Data
+            let drinkName = randomDrink.name;
+            let drinkPriceDisplay = "";
+            let drinkPriceVal = 0;
+
+            if (randomDrink.prices) {
+                // Pick random size for fun
+                const randomSize = randomDrink.prices[Math.floor(Math.random() * randomDrink.prices.length)];
+                drinkName = `${randomDrink.name} (${randomSize.size})`;
+                drinkPriceDisplay = `₹${randomSize.price}`;
+                drinkPriceVal = randomSize.price;
+            } else {
+                drinkPriceDisplay = `₹${randomDrink.price}`;
+                drinkPriceVal = randomDrink.price;
+            }
+
+            // Update DOM
+            document.getElementById('surprise-food').innerText = foodName;
+            document.getElementById('surprise-food-price').innerText = foodPriceDisplay;
+            document.getElementById('surprise-drink').innerText = drinkName;
+            document.getElementById('surprise-drink-price').innerText = drinkPriceDisplay;
+
+            surpriseSelection = {
+                food: { name: foodName, price: foodPriceVal },
+                drink: { name: drinkName, price: drinkPriceVal }
+            };
+
+            document.getElementById('surprise-modal').classList.remove('hidden');
+        }
+
+        function closeSurpriseModal() {
+            document.getElementById('surprise-modal').classList.add('hidden');
+        }
+
+        function acceptSurprise() {
+            if (!surpriseSelection) return;
+            
+            const { food, drink } = surpriseSelection;
+            
+            if (food.price !== 0) {
+                addToCart(food.name, food.price);
+            }
+
+            if (drink.price !== 0) {
+                addToCart(drink.name, drink.price);
+            }
+
+            closeSurpriseModal();
+            openCartModal();
+        }
+
+        // --- 8. DRUNK-O-METER LOGIC ---
+        function openDrunkMeter() {
+            document.getElementById('drunk-modal').classList.remove('hidden');
+            updateDrunkMeter(0);
+        }
+
+        function closeDrunkMeter() {
+            document.getElementById('drunk-modal').classList.add('hidden');
+        }
+
+        function updateDrunkMeter(val) {
+            const result = document.getElementById('drunk-result');
+            const v = parseInt(val);
+            let msg = "";
+            let transform = "none";
+            
+            // Visual Blur Effect based on drunk level
+            const blurAmount = v * 0.8; // 0px to 8px
+            document.getElementById('menu-container').style.filter = `blur(${blurAmount}px)`;
+
+            if (v === 0) {
+                msg = "0 drinks? You are as dry as a desert! Order a Gimlet immediately! 🌵";
+            } else if (v <= 2) {
+                msg = "Just warming up? The night is young, mortal! 🥂";
+            } else if (v <= 4) {
+                msg = "A pleasant buzz! You speak with the confidence of a demigod. 🗣️";
+            } else if (v <= 6) {
+                msg = "Whoa there! The floor is moving, isn't it? 🌊";
+                transform = "rotate(2deg) scale(1.05)";
+            } else if (v <= 8) {
+                msg = "By Zeus! You might be seeing double. Two menus? 😵";
+                transform = "rotate(-3deg) scale(1.1) skewX(5deg)";
+            } else {
+                msg = "YOU ARE DIONYSUS INCARNATE! Go home and sleep, legend! 🛌💤";
+                transform = "rotate(180deg) scale(0.8)";
+            }
+
+            result.innerHTML = `<p class="text-lg font-bold text-gray-800 italic transition-all duration-300" style="transform: ${transform}">${msg}</p>`;
+        }
+
+        // --- 9. ADMIN FUNCTIONS ---
+        function toggleAdmin() {
+            if (isAdmin) {
+                isAdmin = false;
+                alert("Admin Mode Disabled");
+                renderMenu();
+            } else {
+                const pass = prompt("Enter Admin Password:");
+                if (pass === "admin") {
+                    isAdmin = true;
+                    alert("Admin Mode Enabled! You can now Edit/Delete items.");
+                    renderMenu();
+                } else {
+                    alert("Incorrect Password");
+                }
+            }
+        }
+
+        function saveMenu() {
+            localStorage.setItem('bacchusMenuData', JSON.stringify(menuData));
+            renderMenu();
+        }
+
+        function deleteItem(catIdx, itemIdx) {
+            if (confirm(`Delete "${menuData[catIdx].items[itemIdx].name}"?`)) {
+                menuData[catIdx].items.splice(itemIdx, 1);
+                saveMenu();
+            }
+        }
+
+        function addItem(catIdx) {
+            const name = prompt("Enter Item Name:");
+            if (!name) return;
+            
+            const priceInput = prompt("Enter Price (or JSON for variants e.g. [{'size':'30ml','price':100}]):");
+            if (!priceInput) return;
+
+            let newItem = { name: name };
+
+            // Check if input looks like JSON (for variants)
+            if (priceInput.trim().startsWith('[')) {
+                try {
+                    newItem.prices = JSON.parse(priceInput);
+                } catch(e) {
+                    alert("Invalid JSON for variants. Item not added.");
+                    return;
+                }
+            } else {
+                newItem.price = parseInt(priceInput) || priceInput; // Handle "Seasonal" or numbers
+            }
+
+            menuData[catIdx].items.push(newItem);
+            saveMenu();
+        }
+
+        function editItem(catIdx, itemIdx) {
+            alert("To edit, please delete the item and add it again with the correct details.");
+            // Keeping it simple for this version
+        }
+
+        // --- 10. FUN & AUDIO FUNCTIONS ---
+        function playPopSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function playSuccessSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            [440, 554, 659].forEach((freq, i) => { // Major triad
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.05, now + i * 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
+                osc.start(now + i * 0.1);
+                osc.stop(now + i * 0.1 + 0.3);
+            });
+        }
+
+        function handleLogoClick() {
+            logoClicks++;
+            if (logoClicks === 5) {
+                document.body.classList.toggle('party-mode');
+                playSuccessSound();
+                confetti({ particleCount: 100, spread: 100, origin: { y: 0.6 } });
+                alert("🎉 PARTY MODE ACTIVATED! 🎉");
+                logoClicks = 0;
+            }
+        }
+    </script>
+</body>
+</html>
