@@ -188,7 +188,7 @@
                     <span>₹<span id="modal-total">0</span></span>
                 </div>
                 <button onclick="placeOrder()" class="w-full bg-[#329da8] text-white py-3 rounded-lg font-bold hover:bg-[#26767e] shadow-lg">
-                    Place Order via WhatsApp <i class="fab fa-whatsapp ml-2"></i>
+                    Place Order (Notify Waiter) <i class="fas fa-utensils ml-2"></i>
                 </button>
             </div>
         </div>
@@ -243,33 +243,6 @@
         </div>
     </div>
 
-    <!-- Bacchus AI Chat Widget -->
-    <div id="chat-widget" class="fixed bottom-24 right-4 z-40">
-        <!-- Chat Button -->
-        <button onclick="toggleChat()" class="bg-[#329da8] text-white w-14 h-14 rounded-full shadow-xl hover:bg-[#26767e] transition-transform transform hover:scale-110 flex items-center justify-center border-2 border-white">
-            <i class="fas fa-comments text-2xl"></i>
-        </button>
-    </div>
-
-    <!-- Chat Window -->
-    <div id="chat-window" class="fixed bottom-40 right-4 left-4 sm:left-auto sm:w-80 bg-white rounded-2xl shadow-2xl hidden z-50 flex flex-col border border-gray-200 overflow-hidden h-96 font-sans">
-        <div class="bg-[#329da8] p-4 text-white flex justify-between items-center shadow-sm">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#329da8] font-bold border border-[#329da8]">B</div>
-                <span class="font-bold tracking-wide">Bacchus AI 🍇</span>
-            </div>
-            <button onclick="toggleChat()" class="text-white hover:text-gray-200 transition"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3"></div>
-        <div id="chat-quick-replies" class="px-3 py-2 bg-gray-50 flex gap-2 overflow-x-auto whitespace-nowrap hide-scrollbar border-t border-gray-100">
-            <!-- Quick replies are injected here -->
-        </div>
-        <div class="p-3 border-t bg-white flex gap-2">
-            <input type="text" id="chat-input" placeholder="Ask the God of Wine..." class="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-[#329da8] focus:ring-1 focus:ring-[#329da8]" onkeypress="handleChatInput(event)">
-            <button onclick="sendChatMessage()" class="bg-[#329da8] text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#26767e] transition shadow-sm"><i class="fas fa-paper-plane text-sm"></i></button>
-        </div>
-    </div>
-
     <!-- Admin Footer -->
     <div class="text-center py-8 text-gray-300 text-xs">
         <button onclick="toggleAdmin()" class="hover:text-gray-500 transition">Admin Access</button>
@@ -285,9 +258,7 @@
         let currentType = 'food';
         let searchQuery = "";
         let dietFilter = 'all';
-        let chatbotContext = null; // For multi-step chat conversations
         let isAdmin = false;
-        let lastSuggestionTime = 0;
         let logoClicks = 0;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -567,14 +538,6 @@
             
             setMenuType('food');
             setDietFilter('all');
-
-            // Auto-open chat after 5 seconds
-            setTimeout(() => {
-                const chatWindow = document.getElementById('chat-window');
-                if (chatWindow.classList.contains('hidden')) {
-                    toggleChat();
-                }
-            }, 5000);
         };
 
         // --- 4. RENDER FUNCTIONS ---
@@ -837,7 +800,6 @@
 
             renderCart();
             playPopSound();
-            if (isDrink) suggestPairing(name);
         }
 
         function updateQty(name, change) {
@@ -859,18 +821,22 @@
         }
 
         function callWaiter() {
-            let message = `*Service Request - Bacchus Inn*\n`;
-            message += `Table No: *${tableNumber}*\n`;
-            message += `---------------------------\n`;
-            message += `Customer is requesting a waiter.`;
+            // --- SEND TO ADMIN APP ---
+            const adminChannel = new BroadcastChannel('bacchus_admin_channel');
+            adminChannel.postMessage({
+                type: 'CALL_WAITER',
+                table: tableNumber,
+                timestamp: new Date().toISOString()
+            });
 
-            // Encode for URL
-            const encodedMsg = encodeURIComponent(message);
-            
-            // Restaurant's WhatsApp Number
-            const restaurantNumber = "919731772881"; 
-            
-            window.open(`https://wa.me/${restaurantNumber}?text=${encodedMsg}`, '_blank');
+            // --- SEND TO SERVER ---
+            fetch('/api/waiter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ table: tableNumber })
+            }).catch(err => console.error("Server Error:", err));
+
+            alert("Waiter has been notified!");
         }
 
         function placeOrder() {
@@ -878,270 +844,41 @@
 
             playSuccessSound();
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-
-            let message = `*New Order - Bacchus Inn*\n`;
-            message += `Table No: *${tableNumber}*\n`;
-            message += `---------------------------\n`;
             
             let total = 0;
             for (const [name, item] of Object.entries(cart)) {
-                message += `${item.qty} x ${name} = ₹${item.price * item.qty}\n`;
                 total += item.price * item.qty;
             }
             
-            message += `---------------------------\n`;
-            message += `*Total: ₹${total}*`;
+            // --- SEND TO ADMIN APP ---
+            // This sends the order data to your backend server
+            const orderPayload = {
+                table: tableNumber,
+                items: cart,
+                total: total,
+                timestamp: new Date().toISOString()
+            };
 
-            // Encode for URL
-            const encodedMsg = encodeURIComponent(message);
-            
-            // Replace this number with the Restaurant's WhatsApp Number
-            const restaurantNumber = "919731772881"; 
-            
-            setTimeout(() => {
-                window.open(`https://wa.me/${restaurantNumber}?text=${encodedMsg}`, '_blank');
-            }, 1000);
-        }
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderPayload)
+            }).catch(err => console.error("Failed to send order to admin system:", err));
+            // -------------------------
 
-        // --- 6. CHATBOT LOGIC ---
-
-        const defaultQuickReplies = [
-            { text: 'Recommend Food 🍗', value: 'Recommend me food' },
-            { text: 'Show Drinks 🍷', value: 'Show Drinks' },
-            { text: 'Custom Cocktail 🧪', value: 'Make my own custom cocktail' },
-            { text: 'Spicy options? 🔥', value: 'Spicy options?' },
-            { text: 'Veg options? 🥦', value: 'Veg options?' }
-        ];
-
-        function setQuickReplies(replies) {
-            const container = document.getElementById('chat-quick-replies');
-            container.innerHTML = '';
-            replies.forEach(reply => {
-                const button = document.createElement('button');
-                button.className = "px-3 py-1 bg-white border border-[#329da8] rounded-full text-xs text-[#329da8] hover:bg-[#329da8] hover:text-white transition shadow-sm flex-shrink-0";
-                button.innerText = reply.text;
-                button.onclick = () => sendQuickReply(reply.value);
-                container.appendChild(button);
+            // --- SEND TO ADMIN APP (INSTANT LOCAL) ---
+            const adminChannel = new BroadcastChannel('bacchus_admin_channel');
+            adminChannel.postMessage({
+                type: 'NEW_ORDER',
+                table: tableNumber,
+                items: cart,
+                total: total
             });
-        }
 
-        function toggleChat() {
-            const chatWindow = document.getElementById('chat-window');
-            chatWindow.classList.toggle('hidden');
-            if (!chatWindow.classList.contains('hidden')) {
-                document.getElementById('chat-input').focus();
-                const msgContainer = document.getElementById('chat-messages');
-                if (msgContainer.children.length === 0) {
-                    addBotMessage("Greetings, mortal! 🍷 I am Bacchus. Seek you a feast, a strong elixir, or divine recommendations?");
-                    setQuickReplies(defaultQuickReplies);
-                }
-            }
-        }
-
-        function handleChatInput(e) {
-            if (e.key === 'Enter') sendChatMessage();
-        }
-
-        function sendQuickReply(text) {
-            const input = document.getElementById('chat-input');
-            input.value = text;
-            sendChatMessage();
-        }
-
-        function sendChatMessage() {
-            const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
-            if (!msg) return;
-            
-            addUserMessage(msg);
-            input.value = '';
-
-            setTimeout(() => {
-                const response = generateBacchusResponse(msg);
-                addBotMessage(response);
-            }, 600);
-        }
-
-        function addUserMessage(text) {
-            const div = document.createElement('div');
-            div.className = "flex justify-end";
-            div.innerHTML = `<div class="bg-[#329da8] text-white px-4 py-2 rounded-l-xl rounded-tr-xl max-w-[85%] text-sm shadow-sm">${text}</div>`;
-            document.getElementById('chat-messages').appendChild(div);
-            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-        }
-
-        function addBotMessage(text) {
-            const div = document.createElement('div');
-            div.className = "flex justify-start";
-            div.innerHTML = `<div class="bg-white border border-gray-200 text-gray-800 px-4 py-2 rounded-r-xl rounded-tl-xl max-w-[85%] text-sm shadow-sm">${text}</div>`;
-            document.getElementById('chat-messages').appendChild(div);
-            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-        }
-
-        function generateBacchusResponse(input) {
-            const lower = input.toLowerCase();
-
-            // --- Contextual Replies ---
-            if (chatbotContext) {
-                const contextAction = chatbotContext.action;
-                const contextData = chatbotContext.data;
-                chatbotContext = null; // Consume context
-                setQuickReplies(defaultQuickReplies); // Reset quick replies
-
-                if (contextAction === 'confirm_add_to_cart') {
-                    if (lower.includes('yes')) {
-                        addToCart(contextData.name, contextData.price);
-                        return `Excellent choice! I have added **${contextData.name}** to your divine order. What other delights do you seek?`;
-                    } else {
-                        return "As you wish, mortal. What other divine flavors can I entice you with?";
-                    }
-                }
-                
-                if (contextAction === 'confirm_gimlet') {
-                     if (lower.includes('shot') || lower.includes('stronger')) {
-                        addToCart('Blueberry Gimlet', 250); // Invented price
-                        addToCart('Extra Shot White Rum', 80); // Based on Bacardi 30ml
-                        return `A choice worthy of Dionysus himself! I have added a **Blueberry Gimlet** with an **extra shot of White Rum**. Prepare yourself!`;
-                     } else if (lower.includes('yes')) {
-                        addToCart('Blueberry Gimlet', 250);
-                        return `A fine choice! One **Blueberry Gimlet** has been added to your order. Enjoy the nectar of the gods!`;
-                     } else {
-                        return "A pity! Perhaps another time. What else may I offer?";
-                     }
-                }
-
-                if (contextAction === 'custom_cocktail_spirit') {
-                    const spirit = input.charAt(0).toUpperCase() + input.slice(1);
-                    chatbotContext = {
-                        action: 'custom_cocktail_flavor',
-                        data: { spirit: spirit }
-                    };
-                    setQuickReplies([
-                        { text: 'Sweet 🍬', value: 'Sweet' },
-                        { text: 'Sour 🍋', value: 'Sour' },
-                        { text: 'Spicy 🌶️', value: 'Spicy' },
-                        { text: 'Fruity 🍓', value: 'Fruity' }
-                    ]);
-                    return `Ah, **${spirit}**! A potent choice. Now, what essence shall this potion possess?`;
-                }
-
-                if (contextAction === 'custom_cocktail_flavor') {
-                    const flavor = input.charAt(0).toUpperCase() + input.slice(1);
-                    const spirit = contextData.spirit;
-                    const drinkName = `Custom ${flavor} ${spirit} Elixir`;
-                    
-                    chatbotContext = {
-                        action: 'confirm_add_to_cart',
-                        data: { name: drinkName, price: 350 }
-                    };
-                    setQuickReplies([
-                        { text: 'Yes, create it! 🧪', value: 'Yes' },
-                        { text: 'No, start over', value: 'No' }
-                    ]);
-                    return `I have envisioned it... The **${drinkName}**! A drink to rival the gods. Shall I add this masterpiece to your order for ₹350?`;
-                }
-            }
-
-            // --- Standard Replies ---
-            if (lower.includes('hello') || lower.includes('hi')) return "Hail, traveler! Ready to feast like the gods? 🍇";
-            
-            if (lower.includes('recommend') || lower.includes('best') || lower.includes('suggest')) {
-                const recommendedItem = { name: 'Chicken Ghee Roast (Half)', price: 200 };
-                chatbotContext = {
-                    action: 'confirm_add_to_cart',
-                    data: recommendedItem
-                };
-                setQuickReplies([
-                    { text: 'Yes, add it!', value: 'Yes' },
-                    { text: 'No, thanks', value: 'No' }
-                ]);
-                return `By Zeus! You must try the **Chicken Ghee Roast**! It is legendary. Shall I add the (Half) portion to your order for the gods?`;
-            }
-
-            if (lower.includes('veg')) return "For the herbivores? The **Paneer Ghee Roast** is divine, or the **Mushroom Masala**! 🍄";
-            
-            if (lower.includes('drink') || lower.includes('alcohol') || lower.includes('gimlet')) {
-                chatbotContext = { action: 'confirm_gimlet', data: {} };
-                setQuickReplies([
-                    { text: 'Yes, add Gimlet', value: 'Yes, add it' },
-                    { text: 'Make it stronger!', value: 'Yes and add a shot' },
-                    { text: 'No, thanks', value: 'No' }
-                ]);
-                return "Ah, a connoisseur of fine spirits! I recommend the **Bubblegum or Blueberry Gimlet**, a truly ambrosial concoction. Feeling bold, mortal? We can test your tolerance to the gods by making it stronger with a shot of **White Rum** or **Vodka**! What say you? 😉";
-            }
-
-            if (lower.includes('custom') || lower.includes('create') || lower.includes('make my own')) {
-                chatbotContext = { action: 'custom_cocktail_spirit', data: {} };
-                setQuickReplies([
-                    { text: 'Vodka 🍸', value: 'Vodka' },
-                    { text: 'Rum 🏴‍☠️', value: 'Rum' },
-                    { text: 'Whisky 🥃', value: 'Whisky' },
-                    { text: 'Gin 🌲', value: 'Gin' }
-                ]);
-                return "A creative soul! Let us forge a drink worthy of Olympus. First, choose your base spirit.";
-            }
-
-            if (lower.includes('joke') || lower.includes('funny') || lower.includes('laugh')) {
-                const jokes = [
-                    "Why did the grape stop in the middle of the road? Because he ran out of juice! 🍇",
-                    "What did the sushi say to the bee? Wasabi! 🍣",
-                    "I told my wife she was drawing her eyebrows too high. She looked surprised. 🤨",
-                    "Why don't eggs tell jokes? They'd crack each other up! 🥚",
-                    "I'm on a seafood diet. I see food and I eat it! 🦀",
-                    "What do you call a fake noodle? An impasta! 🍝",
-                    "Why did the tomato turn red? Because it saw the salad dressing! 🥗"
-                ];
-                return jokes[Math.floor(Math.random() * jokes.length)];
-            }
-
-            if (lower.includes('spicy') || lower.includes('hot')) return "You seek fire? 🔥 The **Chicken Chilly** or **Schezwan Fried Rice** will test your spirit!";
-            if (lower.includes('price') || lower.includes('cost') || lower.includes('much')) return "A small tribute for such a feast! The prices are listed on the menu scrolls above.";
-            if (lower.includes('thank')) return "Go forth and feast! 🍇";
-            if (lower.includes('bye')) return "Farewell, mortal! May your cup never be empty.";
-            return "My vision is clouded by wine... I did not understand. Ask about food, drinks, or recommendations!";
-        }
-
-        function suggestPairing(drinkName) {
-            const now = Date.now();
-            if (now - lastSuggestionTime < 10000) return; // 10 second cooldown to prevent spam
-
-            const lower = drinkName.toLowerCase();
-            let suggestion = null;
-
-            // Whisky/Scotch/Brandy/Rum
-            if (lower.includes('bagpiper') || lower.includes('officers') || lower.includes('directors') || lower.includes('dsp') || lower.includes('imperial') || lower.includes('mcdowell') || lower.includes('royal') || lower.includes('signature') || lower.includes('blenders') || lower.includes('antiquity') || lower.includes('pipers') || lower.includes('black & white') || lower.includes('black dog') || lower.includes('teachers') || lower.includes('vat 69') || lower.includes('mansion house') || lower.includes('rum') || lower.includes('old monk') || lower.includes('bacardi') || lower.includes('kodays')) {
-                 suggestion = { name: 'Chicken Ghee Roast (Half)', price: 200, reason: "The rich spice of Ghee Roast balances your spirit perfectly!" };
-            } 
-            // Vodka/Gin/Cocktails
-            else if (lower.includes('vodka') || lower.includes('romonov') || lower.includes('smirnoff') || lower.includes('gin') || lower.includes('blue ribbon') || lower.includes('gimlet') || lower.includes('elixir')) {
-                 suggestion = { name: 'Chicken Chilly (Bone)', price: 140, reason: "Spice up your drink with some zesty Chicken Chilly!" };
-            }
-
-            if (suggestion) {
-                if (cart[suggestion.name]) return; // Don't suggest if already in cart
-
-                lastSuggestionTime = now;
-                
-                // Open chat if hidden
-                const chatWindow = document.getElementById('chat-window');
-                if (chatWindow.classList.contains('hidden')) {
-                    toggleChat();
-                }
-
-                setTimeout(() => {
-                    addBotMessage(`Excellent choice with the **${drinkName}**! 🍷 ${suggestion.reason} Shall I add **${suggestion.name}** to your order?`);
-                    
-                    chatbotContext = {
-                        action: 'confirm_add_to_cart',
-                        data: { name: suggestion.name, price: suggestion.price }
-                    };
-                    
-                    setQuickReplies([
-                        { text: 'Yes, please! 🍗', value: 'Yes' },
-                        { text: 'No, thanks', value: 'No' }
-                    ]);
-                }, 1000);
-            }
+            alert("Order sent to kitchen!");
+            cart = {};
+            renderCart();
+            closeCartModal();
         }
 
         // --- 7. SURPRISE ME LOGIC ---

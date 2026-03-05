@@ -1,0 +1,271 @@
+<!-- c:\Users\shubh\Desktop\bacchus\bacchus\bacchus-menu\admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bacchus Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #1a202c; color: white; font-family: 'Segoe UI', sans-serif; }
+        .table-box {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .table-box:hover { transform: scale(1.05); }
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-gray-800 p-4 shadow-lg flex justify-between items-center z-10">
+        <div class="flex items-center gap-4">
+            <h1 class="text-2xl font-bold text-[#329da8]">Bacchus Admin 🍇</h1>
+            <span class="bg-gray-700 px-3 py-1 rounded text-xs text-gray-300">Live Monitor</span>
+        </div>
+        <div class="flex gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-green-500 rounded-full"></div> <span class="text-sm">Free</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-red-600 rounded-full animate-pulse"></div> <span class="text-sm">Action Needed</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="flex-1 overflow-y-auto p-4">
+        <div id="tables-grid" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-3">
+            <!-- Tables injected by JS -->
+        </div>
+    </main>
+
+    <!-- Order Details Modal -->
+    <div id="order-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white text-gray-800 w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden">
+            <div class="bg-red-600 text-white p-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold" id="modal-title">Table --</h2>
+                <button onclick="closeModal()" class="hover:text-gray-200"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-6 max-h-[60vh] overflow-y-auto" id="modal-content">
+                <!-- Content goes here -->
+            </div>
+
+            <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
+                <button onclick="closeModal()" class="px-4 py-2 text-gray-600 font-bold hover:bg-gray-200 rounded-lg">Close</button>
+                <button onclick="resolveTable()" class="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 shadow-lg">
+                    <i class="fas fa-check mr-2"></i> Mark Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE ---
+        const totalTables = 100;
+        let activeOrders = {}; // Stores data for tables: { "5": { type: 'order', items: [...], total: 500 } }
+        let selectedTable = null;
+        
+        // Connect to the same channel as the customer app
+        const channel = new BroadcastChannel('bacchus_admin_channel');
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            renderGrid();
+            requestPermission(); // For audio
+            setInterval(fetchOrders, 2000); // Poll server every 2 seconds
+        };
+
+        // --- RENDER GRID ---
+        function renderGrid() {
+            const grid = document.getElementById('tables-grid');
+            grid.innerHTML = "";
+
+            for (let i = 1; i <= totalTables; i++) {
+                const isAlert = activeOrders[i] !== undefined;
+                const type = isAlert ? activeOrders[i].type : 'free';
+                
+                const div = document.createElement('div');
+                div.className = `table-box p-4 rounded-lg shadow-md flex flex-col items-center justify-center h-24 relative border-2 
+                    ${isAlert ? 'bg-red-600 border-red-400 blink' : 'bg-gray-700 border-gray-600 hover:bg-gray-600'}`;
+                
+                div.onclick = () => handleTableClick(i);
+
+                let icon = '<i class="fas fa-chair text-gray-400 text-xl mb-1"></i>';
+                if (type === 'ORDER') icon = '<i class="fas fa-utensils text-white text-2xl mb-1"></i>';
+                if (type === 'WAITER') icon = '<i class="fas fa-bell text-yellow-300 text-2xl mb-1"></i>';
+
+                div.innerHTML = `
+                    ${icon}
+                    <span class="font-bold text-lg ${isAlert ? 'text-white' : 'text-gray-300'}">T-${i}</span>
+                    ${isAlert ? '<span class="absolute top-1 right-1 w-3 h-3 bg-yellow-400 rounded-full shadow"></span>' : ''}
+                `;
+                grid.appendChild(div);
+            }
+        }
+
+        // --- FETCH FROM SERVER ---
+        function fetchOrders() {
+            fetch('/api/orders')
+                .then(res => res.json())
+                .then(data => {
+                    // Check for new orders to play sound (simple check)
+                    const currentTables = Object.keys(activeOrders);
+                    const newTables = Object.keys(data);
+                    const hasNew = newTables.some(t => !currentTables.includes(t));
+                    
+                    if (hasNew) playAlertSound();
+
+                    activeOrders = data;
+                    renderGrid();
+                })
+                .catch(err => console.error("Polling Error:", err));
+        }
+
+        // --- HANDLE EVENTS ---
+        channel.onmessage = (event) => {
+            const data = event.data;
+            const tableNum = parseInt(data.table);
+
+            if (!tableNum) return;
+
+            playAlertSound();
+
+            if (data.type === 'NEW_ORDER') {
+                activeOrders[tableNum] = {
+                    type: 'ORDER',
+                    items: data.items,
+                    total: data.total,
+                    time: new Date().toLocaleTimeString()
+                };
+            } else if (data.type === 'CALL_WAITER') {
+                // Don't overwrite an existing food order with just a waiter call
+                if (!activeOrders[tableNum] || activeOrders[tableNum].type !== 'ORDER') {
+                    activeOrders[tableNum] = {
+                        type: 'WAITER',
+                        time: new Date().toLocaleTimeString()
+                    };
+                }
+            }
+
+            renderGrid();
+        };
+
+        function handleTableClick(num) {
+            if (!activeOrders[num]) return;
+            
+            selectedTable = num;
+            const data = activeOrders[num];
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+
+            modalTitle.innerText = `Table ${num} - ${data.type === 'ORDER' ? 'New Order' : 'Waiter Requested'}`;
+            
+            if (data.type === 'ORDER') {
+                let allOrdersHtml = '';
+
+                data.orders.forEach(order => {
+                    let foodHtml = '<ul class="space-y-2">';
+                    let drinkHtml = '<ul class="space-y-2">';
+                    let hasFood = false;
+                    let hasDrinks = false;
+                    
+                    for (const [name, item] of Object.entries(order.items)) {
+                        const li = `
+                            <li class="flex justify-between border-b pb-2 last:border-b-0">
+                                <span><span class="font-bold text-lg">${item.qty}x</span> ${name}</span>
+                                <span class="font-bold">₹${item.price * item.qty}</span>
+                            </li>`;
+                        
+                        if (item.isDrink) {
+                            drinkHtml += li;
+                            hasDrinks = true;
+                        } else {
+                            foodHtml += li;
+                            hasFood = true;
+                        }
+                    }
+                    foodHtml += '</ul>';
+                    drinkHtml += '</ul>';
+
+                    allOrdersHtml += `
+                        <div class="mb-6 border-b-2 border-dashed pb-4 last:border-b-0 last:pb-0 last:mb-0">
+                            <h4 class="font-bold text-gray-600 mb-3">Order placed at: ${order.time}</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                ${hasFood ? `<div class="bg-orange-50 p-4 rounded-lg border border-orange-200"><h3 class="font-bold text-orange-800 mb-3 text-lg border-b border-orange-200 pb-2"><i class="fas fa-utensils mr-2"></i>Food</h3>${foodHtml}</div>` : '<div class="hidden md:block"></div>'}
+                                ${hasDrinks ? `<div class="bg-purple-50 p-4 rounded-lg border border-purple-200"><h3 class="font-bold text-purple-800 mb-3 text-lg border-b border-purple-200 pb-2"><i class="fas fa-wine-glass-alt mr-2"></i>Drinks</h3>${drinkHtml}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                modalContent.innerHTML = `
+                    ${allOrdersHtml}
+                    <div class="mt-4 pt-4 border-t flex justify-between items-center text-xl font-bold text-[#329da8]">
+                        <span>Grand Total:</span>
+                        <span>₹${data.grandTotal}</span>
+                    </div>
+                `;
+            } else {
+                modalContent.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-bell text-6xl text-yellow-500 mb-4"></i>
+                        <h3 class="text-2xl font-bold text-gray-800">Customer Calling Waiter</h3>
+                        <p class="text-gray-500 mt-2">Time: ${data.time}</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('order-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('order-modal').classList.add('hidden');
+            selectedTable = null;
+        }
+
+        function resolveTable() {
+            if (selectedTable) {
+                // Tell server to clear the table
+                fetch(`/api/orders/${selectedTable}/resolve`, { method: 'POST' })
+                    .then(() => {
+                        delete activeOrders[selectedTable];
+                        renderGrid();
+                        closeModal();
+                    });
+            }
+        }
+
+        // --- AUDIO ---
+        function playAlertSound() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function requestPermission() {
+            // Dummy interaction to unlock audio context if needed
+            document.body.addEventListener('click', function() {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                audioCtx.resume();
+            }, { once: true });
+        }
+    </script>
+</body>
+</html>
