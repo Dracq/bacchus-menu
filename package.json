@@ -3,6 +3,8 @@
     "@vercel/kv": "^3.0.0",
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "redis": "^5.11.0",
+    "vercel": "^50.27.1"
   }
 }
