@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,18 +9,34 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
-        .category-header { position: sticky; top: 0; background: white; z-index: 10; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .category-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
         .logo-container {
             display: flex;
             align-items: center;
             gap: 12px;
             animation: slideDown 0.5s ease-out;
         }
-        
+
         .logo-image {
             width: 60px;
             height: 60px;
@@ -37,12 +54,12 @@
                 border: 3px solid rgba(255, 255, 255, 0.9);
             }
         }
-        
+
         .logo-image:hover {
             transform: scale(1.08) rotate(2deg);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
-        
+
         .logo-text h1 {
             font-size: 20px;
             font-weight: 800;
@@ -50,7 +67,7 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
             line-height: 1.2;
         }
-        
+
         .logo-text p {
             font-size: 12px;
             letter-spacing: 1px;
@@ -63,17 +80,19 @@
             .logo-text h1 {
                 font-size: 30px;
             }
+
             .logo-text p {
                 font-size: 15px;
                 margin-top: 2px;
             }
         }
-        
+
         @keyframes slideDown {
             from {
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -86,24 +105,30 @@
             background-size: 16px 16px;
         }
 
-        @keyframes rainbow { 
-            0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } 
+        @keyframes rainbow {
+            0% {
+                filter: hue-rotate(0deg);
+            }
+
+            100% {
+                filter: hue-rotate(360deg);
+            }
         }
-        .party-mode { animation: rainbow 2s linear infinite; }
+
+        .party-mode {
+            animation: rainbow 2s linear infinite;
+        }
     </style>
 </head>
-<body class="pb-24">
 
-    <!-- Happy Hour Banner -->
-    <div class="bg-yellow-500 text-white text-center py-2 font-bold text-sm shadow-md">
-        <i class="fas fa-glass-cheers mr-2"></i> HAPPY HOUR! Special offers on Drinks (5 PM - 8 PM) 🍷
-    </div>
+<body class="pb-24">
 
     <!-- Header -->
     <header class="greek-pattern text-white p-4 shadow-lg sticky top-0 z-50">
         <div class="flex justify-between items-center">
             <div class="logo-container">
-                <img src="assets/images.jpeg" alt="Bacchus Inn Logo" class="logo-image cursor-pointer" onclick="handleLogoClick()">
+                <img src="assets/images.jpeg" alt="Bacchus Inn Logo" class="logo-image cursor-pointer"
+                    onclick="handleLogoClick()">
                 <div class="logo-text">
                     <h1>Bacchus Inn</h1>
                     <p>MANIPAL</p>
@@ -113,7 +138,8 @@
                 <div class="bg-white text-[#329da8] px-3 py-1 rounded-full text-sm font-bold shadow-md">
                     Table: <span id="table-display">--</span>
                 </div>
-                <button onclick="callWaiter()" class="bg-yellow-400 text-[#329da8] px-3 py-1 rounded-full text-xs font-bold shadow-md hover:bg-yellow-300 transition flex items-center">
+                <button onclick="callWaiter()"
+                    class="bg-yellow-400 text-[#329da8] px-3 py-1 rounded-full text-xs font-bold shadow-md hover:bg-yellow-300 transition flex items-center">
                     <i class="fas fa-bell mr-1"></i> Call Waiter
                 </button>
             </div>
@@ -122,32 +148,54 @@
 
     <!-- Menu Type Toggles -->
     <div class="px-4 pt-4 pb-2 bg-[#f8f9fa]">
-        <div class="flex gap-2 bg-white p-1 rounded-xl shadow-sm border border-gray-200">
-            <button onclick="setMenuType('food')" id="btn-food" class="flex-1 py-2 rounded-lg font-bold text-sm transition-all">Food 🍛</button>
-            <button onclick="setMenuType('bites')" id="btn-bites" class="flex-1 py-2 rounded-lg font-bold text-sm transition-all">Bar Bites 🍢</button>
-            <button onclick="setMenuType('bar')" id="btn-bar" class="flex-1 py-2 rounded-lg font-bold text-sm transition-all">Bar 🍷</button>
+        <div class="flex gap-2 bg-white p-1 rounded-xl shadow-sm border border-gray-200 overflow-x-auto hide-scrollbar">
+            <button onclick="setMenuType('new')" id="btn-new"
+                class="flex-shrink-0 px-3 py-2 rounded-lg font-bold text-sm transition-all">New ✨</button>
+            <button onclick="setMenuType('food')" id="btn-food"
+                class="flex-shrink-0 px-3 py-2 rounded-lg font-bold text-sm transition-all">Food 🍛</button>
+            <button onclick="setMenuType('bites')" id="btn-bites"
+                class="flex-shrink-0 px-3 py-2 rounded-lg font-bold text-sm transition-all">Bar Bites 🍢</button>
+            <button onclick="setMenuType('bar')" id="btn-bar"
+                class="flex-shrink-0 px-3 py-2 rounded-lg font-bold text-sm transition-all">Bar 🍷</button>
+            <button onclick="setMenuType('cocktails')" id="btn-cocktails"
+                class="flex-shrink-0 px-3 py-2 rounded-lg font-bold text-sm transition-all">Cocktails 🍹</button>
+            <button onclick="setMenuType('mocktails')" id="btn-mocktails"
+                class="flex-shrink-0 px-3 py-2 rounded-lg font-bold text-sm transition-all">Mocktails 🥤</button>
+            <button onclick="setMenuType('bevdess')" id="btn-bevdess"
+                class="flex-shrink-0 px-3 py-2 rounded-lg font-bold text-sm transition-all">Beverages and Desserts 🍨</button>
         </div>
     </div>
 
     <!-- Search Bar -->
     <div class="px-4 pb-2 bg-[#f8f9fa]">
         <div class="relative">
-            <input type="text" onkeyup="handleSearch(this.value)" placeholder="Search items..." class="w-full p-3 pl-10 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:border-[#329da8] focus:ring-1 focus:ring-[#329da8]">
+            <input type="text" onkeyup="handleSearch(this.value)" placeholder="Search items..."
+                class="w-full p-3 pl-10 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:border-[#329da8] focus:ring-1 focus:ring-[#329da8]">
             <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
         </div>
     </div>
 
     <!-- Diet Filter -->
     <div class="px-4 pb-2 bg-[#f8f9fa] flex gap-2 overflow-x-auto hide-scrollbar">
-        <button onclick="setDietFilter('all')" id="btn-diet-all" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-gray-800 text-white border-gray-800 whitespace-nowrap">All</button>
-        <button onclick="setDietFilter('veg')" id="btn-diet-veg" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300 whitespace-nowrap">Veg <span class="text-green-600 text-xs">●</span></button>
-        <button onclick="setDietFilter('non-veg')" id="btn-diet-non-veg" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300 whitespace-nowrap">Non-Veg <span class="text-red-600 text-xs">●</span></button>
-        <button onclick="surpriseMe()" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200 whitespace-nowrap">Surprise Me ✨</button>
-        <button onclick="openDrunkMeter()" class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200 whitespace-nowrap">Drunk-o-meter 🥴</button>
+        <button onclick="setDietFilter('all')" id="btn-diet-all"
+            class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-gray-800 text-white border-gray-800 whitespace-nowrap">All</button>
+        <button onclick="setDietFilter('veg')" id="btn-diet-veg"
+            class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300 whitespace-nowrap">Veg
+            <span class="text-green-600 text-xs">●</span></button>
+        <button onclick="setDietFilter('non-veg')" id="btn-diet-non-veg"
+            class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300 whitespace-nowrap">Non-Veg
+            <span class="text-red-600 text-xs">●</span></button>
+        <button onclick="setDietFilter('egg')" id="btn-diet-egg"
+            class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300 whitespace-nowrap">Egg
+            <span class="text-yellow-500 text-xs">●</span></button>
+        <button onclick="surpriseMe()"
+            class="px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200 whitespace-nowrap">Surprise
+            Me ✨</button>
     </div>
 
     <!-- Category Nav -->
-    <div class="bg-white shadow-sm overflow-x-auto whitespace-nowrap p-3 hide-scrollbar sticky top-16 z-40" id="category-nav">
+    <div class="bg-white shadow-sm overflow-x-auto whitespace-nowrap p-3 hide-scrollbar sticky top-16 z-40"
+        id="category-nav">
         <!-- Categories injected here -->
     </div>
 
@@ -157,26 +205,30 @@
     </main>
 
     <!-- Floating Cart Button -->
-    <div id="cart-bar" class="fixed bottom-0 left-0 w-full bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 hidden z-50">
+    <div id="cart-bar"
+        class="fixed bottom-0 left-0 w-full bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 hidden z-50">
         <div class="max-w-2xl mx-auto flex justify-between items-center">
             <div>
                 <p class="text-gray-500 text-xs">Total Items: <span id="total-count">0</span></p>
                 <p class="text-[#329da8] font-bold text-lg">₹<span id="total-price">0</span></p>
             </div>
-            <button onclick="openCartModal()" class="bg-[#329da8] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#26767e] transition">
+            <button onclick="openCartModal()"
+                class="bg-[#329da8] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#26767e] transition">
                 View Cart <i class="fas fa-shopping-basket ml-2"></i>
             </button>
         </div>
     </div>
 
     <!-- Cart Modal -->
-    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-end sm:items-center justify-center">
+    <div id="cart-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-end sm:items-center justify-center">
         <div class="bg-white w-full max-w-md h-[80vh] sm:h-auto sm:rounded-lg rounded-t-2xl flex flex-col shadow-2xl">
             <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
                 <h2 class="text-lg font-bold">Your Order</h2>
-                <button onclick="closeCartModal()" class="text-gray-500 hover:text-[#329da8]"><i class="fas fa-times fa-lg"></i></button>
+                <button onclick="closeCartModal()" class="text-gray-500 hover:text-[#329da8]"><i
+                        class="fas fa-times fa-lg"></i></button>
             </div>
-            
+
             <div class="p-4 overflow-y-auto flex-1" id="cart-items">
                 <!-- Cart items injected here -->
                 <p class="text-center text-gray-400 mt-10">Your cart is empty.</p>
@@ -187,7 +239,8 @@
                     <span>Grand Total</span>
                     <span>₹<span id="modal-total">0</span></span>
                 </div>
-                <button onclick="placeOrder()" class="w-full bg-[#329da8] text-white py-3 rounded-lg font-bold hover:bg-[#26767e] shadow-lg">
+                <button onclick="placeOrder()"
+                    class="w-full bg-[#329da8] text-white py-3 rounded-lg font-bold hover:bg-[#26767e] shadow-lg">
                     Place Order (Notify Waiter) <i class="fas fa-utensils ml-2"></i>
                 </button>
             </div>
@@ -195,12 +248,13 @@
     </div>
 
     <!-- Surprise Modal -->
-    <div id="surprise-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div id="surprise-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">✨ The Gods Have Chosen! ✨</h2>
             <p class="text-gray-500 mb-6">A divine feast awaits you...</p>
-            
+
             <div class="bg-purple-50 p-4 rounded-xl mb-4 border border-purple-100">
                 <p class="text-xs text-purple-600 font-bold uppercase tracking-wider mb-1">Food</p>
                 <h3 id="surprise-food" class="text-lg font-bold text-gray-800">--</h3>
@@ -214,34 +268,16 @@
             </div>
 
             <div class="flex gap-3">
-                <button onclick="closeSurpriseModal()" class="flex-1 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition">No, thanks</button>
-                <button onclick="acceptSurprise()" class="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg hover:opacity-90 transition">Accept Feast ⚡</button>
+                <button onclick="closeSurpriseModal()"
+                    class="flex-1 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition">No,
+                    thanks</button>
+                <button onclick="acceptSurprise()"
+                    class="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg hover:opacity-90 transition">Accept
+                    Feast ⚡</button>
             </div>
         </div>
     </div>
 
-    <!-- Drunk-o-meter Modal -->
-    <div id="drunk-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center relative overflow-hidden border-4 border-[#329da8]">
-            <h2 class="text-2xl font-bold text-[#329da8] mb-4">🍷 Drunk-o-meter 🥴</h2>
-            <p class="text-gray-600 mb-6">Be honest with the Gods... how many drinks?</p>
-            
-            <div class="mb-8 px-4">
-                <input type="range" min="0" max="10" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#329da8]" oninput="updateDrunkMeter(this.value)">
-                <div class="flex justify-between text-xs text-gray-400 mt-2">
-                    <span>Sober</span>
-                    <span>Tipsy</span>
-                    <span>Dionysus</span>
-                </div>
-            </div>
-
-            <div id="drunk-result" class="bg-gray-50 p-4 rounded-xl mb-6 min-h-[80px] flex items-center justify-center transition-all duration-300">
-                <p class="text-lg font-bold text-gray-800 italic">"0 drinks? You are as dry as a desert!"</p>
-            </div>
-
-            <button onclick="closeDrunkMeter()" class="w-full py-3 rounded-xl font-bold text-white bg-[#329da8] hover:bg-[#26767e] transition shadow-lg">I'm Good! 👍</button>
-        </div>
-    </div>
 
     <!-- Admin Footer -->
     <div class="text-center py-8 text-gray-300 text-xs">
@@ -251,7 +287,7 @@
     <script>
         // --- 1. DATA PREPARATION ---
         // I have cleaned your provided data into a structured JSON format.
-        
+
         // --- 2. STATE MANAGEMENT ---
         let cart = {}; // Object to store items: { "Item Name": { price: 100, qty: 2 } }
         let tableNumber = null;
@@ -264,278 +300,842 @@
 
         // Default Menu Data
         let menuData = [
+        // -- NEW ON THE MENU --
+
+        { category: "Soups", items: [
+                { name: "Oriental Chicken Soup", price: 150 },
+                { name: "Bacchus Inn Special Chicken Soup", price: 150 },
+                { name: "Spicy Seafood Soup (Prawns, Squid & Fish)", price: 150 },
+                { name: "Cream of Chicken Soup", price: 150 },
+                { name: "Lemon Coriander Chicken Soup", price: 150 }
+            ]},
+            { category: "South Indian Starters", items: [
+                { name: "Chicken Navami / Chicken Buna (Boneless)", price: 300 },
+                { name: "Chata Pata Chicken (Boneless)", price: 300 },
+                { name: "Chicken Kasthuri Dry", price: 290 },
+                { name: "Chicken Joungly", price: 290 },
+                { name: "Chicken 99", price: 280 },
+                { name: "Chicken Pepper Roast Dry Fry", price: 280 },
+                { name: "Chata Pata Egg", price: 140 },
+                { name: "Omlet Ghee Roast", price: 160 },
+                { name: "Omlet Pepper Fry", price: 160 },
+                { name: "Suran (Elephant Foot Yam) 65/Chilly", price: 160 }
+            ]},
+            
+            { category: "Tandoori", items: [
+                { name: "Paneer Cheese Tikka", price: 300 },
+                { name: "Chicken Dum Kabab", price: 300 },
+                { name: "Paneer Chat Pata Kabab", price: 260 },
+                { name: "Paneer Malai Tikka", price: 280 },
+                { name: "Choosi Kabab", price: 280 },
+                { name: "Kalimirchi Kabab", price: 290 },
+                { name: "Malwani Kabab", price: 270 }
+            ]},
+            { category: "North Indian Gravy", items: [
+                { name: "Chicken Mughlai/Afghani", price: 300 },
+                { name: "Chicken Keema Masala", price: 300 },
+                { name: "Chicken Milly Jully", price: 300 },
+                { name: "Chicken Kurma", price: 310 },
+                { name: "Mutton Mughlai/Afghani", price: 400 },
+                { name: "Mutton Milly Jully", price: 400 },
+                { name: "Veg Malai Kofta", price: 230 },
+                { name: "Veg Kurma", price: 200 },
+                { name: "Dal Mughlai", price: 180 }
+            ]},
+            { category: "Oriental Veg Starters", items: [
+                { name: "Crispy Corn", price: 220 },
+                { name: "Salt & Pepper Corn", price: 220 },
+                { name: "Sriracha Chilly Potato", price: 210 },
+                { name: "Creamy Cheesy Fries", price: 200 },
+                { name: "Mountain Chilly Babycorn", price: 220 },
+                { name: "Nacho Paneer Ke Sath", price: 220 },
+                { name: "Kung Pao Paneer", price: 280 },
+                { name: "Chata Pata Peanut", price: 130 }
+            ]},
+            { category: "Oriental Non-Veg Starters", items: [
+                { name: "Dragon Chicken", price: 300 },
+                { name: "Teriyaki Chicken", price: 300 },
+                { name: "Garlic Lemon Chicken", price: 290 },
+                { name: "Honey Crispy Chicken", price: 290 },
+                { name: "Java Chicken Lolly Pop", price: 300 },
+                { name: "Thai Pai Chicken", price: 290 },
+                { name: "Chicken Sai Woo", price: 300 },
+                { name: "Sausage Chilly", price: 250 },
+                { name: "Nacho Chicken Ke SATH", price: 220 },
+                { name: "Chicken & Egg Pepper", price: 240 },
+                { name: "Black Pepper Fish", price: 400 },
+                { name: "Kung Pao Chicken", price: 280 },
+                { name: "Spicy Peanut Chicken", price: 270 },
+                { name: "Spicy Skewered Korean Chicken", price: 320 },
+                { name: "Bang Bang Chicken", price: 320 },
+                { name: "Spicy Sha Cha Chicken", price: 320 },
+                { name: "Mongolian Chicken", price: 320 },
+                { name: "Diced Chicken Devil Sauce", price: 320 },
+                { name: "Tokei Chicken", price: 320 }
+            ]},
+            { category: "Wings Special", items: [
+                { name: "BBQ Chicken Wings", price: 280 },
+                { name: "Sweet Chilly Chicken Wings", price: 280 },
+                { name: "Honey Garlic Chicken Wings", price: 320 },
+                { name: "BBQ Korean Chicken Wings", price: 320 }
+            ]},
+            { category: "Noodles & Rice", items: [
+                { name: "Mongolian Veg Rice", price: 270 },
+                { name: "Mongolian Veg Noodles", price: 270 },
+                { name: "Mongolian Chicken Rice", price: 270 },
+                { name: "Mongolian Chicken Noodles", price: 270 },
+                { name: "Kung Pao Noodles", price: 270 },
+                { name: "Royal Beijing Noodles", price: 270 }
+            ]},
+            // -- FOOD MENU --
+            { category: "Veg Soups", items: [
+                { name: "Veg Manchow Soup", price: 120 },
+                { name: "Veg Sweet Corn Soup", price: 120 },
+                { name: "Veg Hot N Sour Soup", price: 120 },
+                { name: "Veg Clear Soup", price: 120 },
+                { name: "Cream of Tomato Soup", price: 120 },
+                { name: "Cream of Mushroom", price: 140 },
+                { name: "Bacchus Inn Special Veg Soup", price: 120 },
+                { name: "Lemon Coriander Veg Soup", price: 120 }
+            ]},
+            { category: "Non-Veg Soups", items: [
+                { name: "Chicken Manchow Soup", price: 130 },
+                { name: "Chicken Sweet Corn Soup", price: 130 },
+                { name: "Chicken Hot N Sour Soup", price: 130 },
+                { name: "Chicken Clear Soup", price: 130 },
+                { name: "Mutton Manchow Soup", price: 170 },
+                { name: "Mutton Sweet Corn Soup", price: 170 },
+                { name: "Mutton Hot N Sour Soup", price: 170 },
+                { name: "Mutton Clear Soup", price: 170 }
+            ]},
+            { category: "Veg Starters", items: [
+                { name: "Bhendi (Ladies Finger) Fry (Masala/Rava)", price: 150 },
+                { name: "Peeree (Ridgeround) Rava Fry", price: 150 },
+                { name: "Finger Chips", price: 110 },
+                { name: "Masala Papad", price: 60 },
+                { name: "Roasted Papad", price: 25 },
+                { name: "Fry Papad", price: 25 },
+                { name: "Veg Pakoda", price: 130 },
+                { name: "Onion Baje", price: 130 },
+                { name: "Capsicum Pakoda", price: 140 },
+                { name: "Paneer Pakoda", price: 190 },
+                { name: "Raja Masala", price: 100 },
+                { name: "Cut Fruits", price: 120 },
+                { name: "Plain Peanut", price: 50 },
+                { name: "Green Salad", price: 90 },
+                { name: "Green Peas Masala Fry", price: 140 },
+                { name: "Green Peas Pepper Fry", price: 160 },
+                { name: "Gobi Chilly/Manchurian", price: 180 },
+                { name: "Gobi Pepper Fry", price: 180 },
+                { name: "Boiled Veg", price: 120 },
+                { name: "Gobi 65", price: 180 },
+                { name: "Gobi Schezwan Dry", price: 180 },
+                { name: "Paneer Manchurian/Chilly", price: 230 },
+                { name: "Paneer Pepper Fry", price: 230 },
+                { name: "Mushroom Manchurian/Chilly", price: 230 },
+                { name: "Mushroom Pepper Fry", price: 230 },
+                { name: "Babycorn Manchurian/Chilly", price: 200 },
+                { name: "Babycorn Pepper Fry", price: 200 },
+                { name: "Crispy Potato Chilly", price: 210 },
+                { name: "Paneer Hot Pan", price: 350 }
+            ]},
+            { category: "Veg Tandoori", items: [
+                { name: "Paneer Tikka", price: 250 },
+                { name: "Mushroom Tikka", price: 250 },
+                { name: "Babycorn Tikka", price: 240 },
+                { name: "Paneer Malai Kabab", price: 280 },
+                { name: "Paneer Banjara Kabab", price: 280 }
+            ]},
+            { category: "Chicken Starters", items: [
+                { name: "Chicken Manchurian/Chilly (Bone)", price: 210 },
+                { name: "Chicken Pepper Fry", price: 210 },
+                { name: "Chicken 65", price: 220 },
+                { name: "Chicken Oil Kabab", price: 230 },
+                { name: "Chicken Urval (Bone)", price: 300 },
+                { name: "Chicken Lollypop", price: 230 },
+                { name: "Chicken Garlic Dry", price: 230 },
+                { name: "Chicken Ginger Dry", price: 220 },
+                { name: "Chicken Butter Garlic", price: 320 },
+                { name: "Chicken Tava", price: 270 },
+                { name: "Chicken Pudina Dry", price: 230 },
+                { name: "Chicken Hot Pan", price: 350 },
+                { name: "Angels of Heaven", price: 270 },
+                { name: "Spicy Chilly Kabab", price: 350 }
+            ]},
+            { category: "Chicken Tandoori", items: [
+                { name: "Chicken Tandoori (Full)", price: 480 },
+                { name: "Chicken Tandoori (Half)", price: 260 },
+                { name: "Chicken Tikka", price: 250 },
+                { name: "Chicken Malai Kabab", price: 280 },
+                { name: "Chicken Banjara Kabab", price: 260 },
+                { name: "Chicken Tandoori Kabab (Bone)", price: 280 },
+                { name: "Chicken Hariyali Kabab", price: 260 },
+                { name: "Chicken Tangdi Kabab (1pc)", price: 180 },
+                { name: "Chicken Kalmi Kabab (2pcs)", price: 240 },
+                { name: "Chicken Kalmi Kabab (1pc)", price: 120 },
+                { name: "Chicken Angara Kabab", price: 350 },
+                { name: "Chicken Sheek Kabab", price: 350 }
+            ]},
+            { category: "Mutton Starters", items: [
+                { name: "Mutton Manchurian/Chilly", price: 400 },
+                { name: "Mutton Pepper Fry", price: 400 },
+                { name: "Mutton Sukka", price: 400 }
+            ]},
+            { category: "Seafood & Fish", items: [
+                { name: "Banguda Rava/Naked/Masala/Tava/Tandoori", price: "Seasonal" },
+                { name: "Anjal Rava/Naked/Masala/Tava", price: "Seasonal" },
+                { name: "Pomfret Rava/Naked/Masala/Tava/Tandoori", price: "Seasonal" },
+                { name: "Kallur Rava/Naked/Masala/Tava/Tandoori", price: "Seasonal" },
+                { name: "Silver Rava/Naked/Masala", price: "Seasonal" },
+                { name: "Sona Masala Fry", price: "Seasonal" },
+                { name: "Squid Sukka / Manchurian / Masala Fry", price: "Seasonal" },
+                { name: "Prawns Manchurian / Rava / Masala / Tava", price: "Seasonal" },
+                { name: "Saddham / Snapper (Eri)", price: "Seasonal" },
+                { name: "Fish Egg Tava/Masala Fry", price: "Seasonal" },
+                { name: "Crab Tandoori / Crab Ghee Roast", price: "Seasonal" },
+                { name: "Fish Tikka Boneless", price: 400 },
+                { name: "Fish Chilly/Manchurian", price: 350 }
+            ]},
+            { category: "Egg Starters", items: [
+                { name: "Omlet", price: 80 },
+                { name: "Half Fry", price: 55 },
+                { name: "Boiled Egg", price: 40 },
+                { name: "Egg Burji", price: 90 },
+                { name: "Egg Chilly/Manchurian", price: 160 },
+                { name: "Egg Masala Fry", price: 130 },
+                { name: "Egg Pepper Dry", price: 160 },
+                { name: "Egg Pakoda", price: 130 }
+            ]},
+            { category: "Butter Garlic Special", items: [
+                { name: "Squid Butter Garlic", price: 350 },
+                { name: "Prawns Butter Garlic", price: 490 },
+                { name: "Mushroom Butter Garlic", price: 320 },
+                { name: "Paneer Butter Garlic", price: 320 },
+                { name: "Baby Corn Butter Garlic", price: 320 },
+                { name: "Fish Butter Garlic", price: 450 }
+            ]},
+            { category: "Chicken Gravies", items: [
+                { name: "Chicken Masala", price: 200 },
+                { name: "Chicken Kadai", price: 220 },
+                { name: "Chicken Kolhapuri", price: 220 },
+                { name: "Chicken Hydrabadi", price: 220 },
+                { name: "Chicken Kalimirchi Masala", price: 230 },
+                { name: "Chicken Tikka Masala", price: 260 },
+                { name: "Chicken Handi", price: 220 },
+                { name: "Chicken Do Pyaza", price: 220 },
+                { name: "Chicken Palak Masala", price: 220 },
+                { name: "Chicken Patiyala Masala", price: 380 },
+                { name: "Chicken Mirchiwala", price: 220 },
+                { name: "Chicken Maharaja (Platter)", price: 450 },
+                { name: "Butter Chicken (Full)", price: 380 },
+                { name: "Butter Chicken (Half)", price: 260 },
+                { name: "Chicken Rara", price: 350 },
+                { name: "Chicken Himalaya", price: 300 }
+            ]},
+            { category: "Mutton Gravies", items: [
+                { name: "Mutton Masala", price: 400 },
+                { name: "Mutton Kadai", price: 400 },
+                { name: "Mutton Handi", price: 400 },
+                { name: "Mutton Rogan Josh", price: 400 },
+                { name: "Mutton Kolhapuri", price: 400 },
+                { name: "Mutton Hydrabadi", price: 400 },
+                { name: "Mutton Kalimirchi Masala", price: 400 },
+                { name: "Mutton Do Pyaza", price: 400 },
+                { name: "Mutton Palak Masala", price: 400 }
+            ]},
+            { category: "Veg Gravies", items: [
+                { name: "Dal Fry/Dal Tadka", price: 110 },
+                { name: "Dal Makani", price: 170 },
+                { name: "Mixed Veg Curry", price: 170 },
+                { name: "Tomato Masala", price: 160 },
+                { name: "Aloo Mutter", price: 170 },
+                { name: "Veg Kolapuri", price: 180 },
+                { name: "Veg Hydrabadi", price: 180 },
+                { name: "Veg Kadai", price: 170 },
+                { name: "Veg Handi", price: 170 },
+                { name: "Paneer Butter Masala", price: 240 },
+                { name: "Mushroom Masala", price: 220 },
+                { name: "Paneer Kadai", price: 220 },
+                { name: "Aloo Gobi Masala", price: 180 },
+                { name: "Green Peas Masala", price: 180 },
+                { name: "Baby Corn & Mushroom Masala", price: 210 },
+                { name: "Plain Palak", price: 120 },
+                { name: "Paneer Palak", price: 220 },
+                { name: "Paneer Tikka Masala", price: 250 },
+                { name: "Kadai Mushroom", price: 220 },
+                { name: "Lazmi Paneer", price: 360 },
+                { name: "Jaypuri Mushroom", price: 320 },
+                { name: "Veg Hazari Garlic", price: 290 }
+            ]},
+            { category: "Egg Gravies", items: [
+                { name: "Egg Makanwala", price: 160 },
+                { name: "Egg Masala", price: 150 },
+                { name: "Egg Curry", price: 130 },
+                { name: "Egg Kadai", price: 150 }
+            ]},
+            { category: "Chicken Chinese Gravies", items: [
+                { name: "Chicken in Oyster Sauce", price: 230 },
+                { name: "Chicken Manchurian Gravy", price: 210 },
+                { name: "Chicken Schezwan Gravy", price: 210 },
+                { name: "Chicken Chilly Gravy", price: 210 },
+                { name: "Chicken Hot Garlic Gravy", price: 240 },
+                { name: "Hunan Chicken Gravy", price: 300 }
+            ]},
+            { category: "Veg Chinese Gravies", items: [
+                { name: "Veg Manchurian Gravy", price: 180 },
+                { name: "Veg Schezwan Gravy", price: 190 },
+                { name: "Gobi Manchurian Gravy", price: 170 },
+                { name: "Mushroom Manchurian Gravy", price: 220 }
+            ]},
+            { category: "Biryani", items: [
+                { name: "Veg Biryani", price: 170 },
+                { name: "Paneer Biryani", price: 220 },
+                { name: "Egg Biryani", price: 180 },
+                { name: "Chicken Dum Biryani (Full)", price: 240, bestSeller: true },
+                { name: "Chicken Dum Biryani (Half)", price: 150 },
+                { name: "Mutton Biryani", price: 380 },
+                { name: "Biryani Rice", price: 100 },
+                { name: "Chicken Keema Biryani", price: 280 }
+            ]},
+            { category: "Rice & Raita", items: [
+                { name: "Curd Rice", price: 120 },
+                { name: "Boiled Rice", price: 60 },
+                { name: "White Rice", price: 60 },
+                { name: "Steam Rice", price: 100 },
+                { name: "Jeera Rice", price: 120 },
+                { name: "Ghee Rice", price: 140 },
+                { name: "Veg Pulav", price: 150 },
+                { name: "Dal Kichdi", price: 150 },
+                { name: "Palak Kichdi", price: 150 },
+                { name: "Plain Curd", price: 40 },
+                { name: "Mix Veg Raita", price: 80 },
+                { name: "Pineapple Raita", price: 90 }
+            ]},
+            { category: "Veg Fried Rice", items: [
+                { name: "Veg Fried Rice", price: 160 },
+                { name: "Paneer Fried Rice", price: 200 },
+                { name: "Mushroom Fried Rice", price: 200 },
+                { name: "Veg Schezwan Fried Rice", price: 170 },
+                { name: "Mexican Fried Rice", price: 240 }
+            ]},
+            { category: "Non-Veg Fried Rice", items: [
+                { name: "Egg Fried Rice", price: 160 },
+                { name: "Chicken Fried Rice", price: 190 },
+                { name: "Chicken Schezwan Fried Rice", price: 200 },
+                { name: "Mixed Fried Rice", price: 240 },
+                { name: "Mutton Fried Rice", price: 240 },
+                { name: "Chicken Burnt Garlic Rice", price: 220 },
+                { name: "Mexican Chicken Fried Rice", price: 270 }
+            ]},
+            { category: "Veg Noodles", items: [
+                { name: "Veg Hakka Noodles", price: 170 },
+                { name: "Veg Schezwan Noodles", price: 190 },
+                { name: "Veg Triple Schezwan", price: 240 },
+                { name: "American Choupsey (Veg)", price: 180 },
+                { name: "Chinese Choupsey (Veg)", price: 180 }
+            ]},
+            { category: "Non-Veg Noodles", items: [
+                { name: "Chicken Hakka Noodles", price: 190 },
+                { name: "Chicken Schezwan Noodles", price: 200 },
+                { name: "Chicken Burnt Garlic Noodles", price: 210 },
+                { name: "Chicken Triple Schezwan", price: 250 },
+                { name: "Egg Noodles", price: 170 },
+                { name: "Egg Schezwan Noodles", price: 190 },
+                { name: "Teriyaki Noodles (Chicken/Prawns)", price: 280 },
+                { name: "Chicken Burnt Chilli Noodles", price: 210 },
+                { name: "Chicken Dragon Noodles", price: 220 },
+                { name: "American Choupsey Chicken", price: 220 },
+                { name: "Chinese Choupsey Chicken", price: 220 }
+            ]},
+            { category: "Breads", items: [
+                { name: "Roti", price: 35 },
+                { name: "Naan", price: 40 },
+                { name: "Kulcha", price: 45 },
+                { name: "Garlic Naan", price: 85 },
+                { name: "Cheese Naan", price: 95 },
+                { name: "Parota", price: 50 },
+                { name: "Veg Stuffed Kulcha/Parota", price: 110 },
+                { name: "Aloo Parota", price: 110 },
+                { name: "Cheese Garlic Naan", price: 120 },
+                { name: "Chicken Stuffed Kulcha", price: 130 },
+                { name: "Chapathi (2pcs)", price: 35 }
+            ]},
+            { category: "South Indian Specialty", items: [
+                { name: "Chicken Sukka (Full)", price: 190 },
+                { name: "Chicken Sukka (Half)", price: 100 },
+                { name: "Kundapura Chicken", price: 210 },
+                { name: "Chicken Pulimunchi", price: 210 },
+                { name: "Kori Rotti", price: 180 },
+                { name: "Gravy Rotti", price: 130 },
+                { name: "Mutton Sukka", price: 400 }
+            ]},
+            { category: "Saturday/Sunday Special", items: [
+                { name: "Nati Koli Sukka", price: 325 },
+                { name: "Neer Dosa (4pcs)", price: 50 }
+            ]},
             {
-                category: "Veg Soup",
+                category: "Soft Drinks",
                 items: [
-                    { name: "Tomato Soup", price: 90 },
-                    { name: "Veg Manchow Soup", price: 90 },
-                    { name: "Veg Sweet Corn Soup", price: 90 },
-                    { name: "Veg Hot n Sour Soup", price: 90 },
-                    { name: "Veg Clear Soup", price: 90 },
-                    { name: "Cream of Mushroom Soup", price: 90 },
-                    { name: "Tomyam Soup", price: 90 }
+                    { "name": "Soft Drinks - 2LTR", "price": 150 },
+        { "name": "Kinley Soda - 300 ML", "price": 20 },
+        { "name": "Kinley Soda - 500 ML", "price": 30 },
+        { "name": "Bottle Water - 1LTR", "price": 30 },
+        { "name": "Local Soda/Soft Drinks", "price": 20 },
+        { "name": "Soft Drinks - 300 ML", "price": 35 },
+        { "name": "Soft Drinks - 500 ML", "price": 70 },
+        { "name": "Tonic Water Can / Ginger Ale", "price": 90 },
+        { "name": "Red Bull / Flavor Water Melon", "price": 150 },
+        { "name": "Diet Coke (Can)", "price": 65 },
+        { "name": "Tropicana Juice (180ML) (Cranberry/Orange)", "price": 60 }
                 ]
             },
             {
-                category: "Non-Veg Soup",
+                category: "Bacchus Inn Specials",
                 items: [
-                    { name: "Chicken Manchow Soup", price: 100 },
-                    { name: "Chicken Sweet Corn Soup", price: 100 },
-                    { name: "Chicken Hot n Sour Soup", price: 100 },
-                    { name: "Chicken Clear Soup", price: 100 },
-                    { name: "Mutton Soup (All variants)", price: 110 },
-                    { name: "Chicken Tomyam Soup", price: 110 },
-                    { name: "Cream of Chicken Soup", price: 110 }
+                    {
+                        type: 'gimlet',
+                        name: "Gimlet",
+                        flavors: ["Classic","Ginger","Pineapple","Blueberry","Watermelon","Bubblegum","Passion & Peach","Green Apple","Honey Dew Melon","Mosambi Magic","Berry Blast","Classic Orange","Guava Chilli","Ganga Jamuna","Rum Punch"],
+                        pricing: { mug:{lite:220,strong:240}, pitcher:{lite:1149,strong:1249}, tower:{lite:2299,strong:2399} }
+                    },
+                    { name: "Tiramisu Shots", price: 150 },
+                    { name: "Honey Dew Melon Shots", price: 150 },
+                    { name: "Hazelnut Shots", price: 150 },
+                    { name: "Bubblegum Shots", price: 150 },
+                    { name: "Guava Chilli Shots", price: 150 },
+                    { name: "Jager Bomb", ingredients: "Jägermeister + Redbull", price: 550 },
+                    {
+                        type: 'syringe',
+                        name: "Kamikaze Syringe Shots",
+                        flavors: ["Kiwi","Peach","Passion Fruit","Strawberry","Blueberry","Mango","Orange"],
+                        packs: [{label:"Pack of 3",price:599},{label:"Pack of 6",price:999}]
+                    },
+                    { name: "Pack of Six 30ml Shots", ingredients: "Any one flavour", flavors: ["Tiramisu", "Honey Dew Melon", "Hazelnut", "Bubblegum", "Guava Chilli"], price: 450 },
+                    { name: "Barman Special Cocktail", price: 380 },
+                    { name: "Tequila", prices: [{size:'30ml',price:215},{size:'60ml',price:430},{size:'750ml',price:4300}] },
+                    { name: "Jägermeister", prices: [{size:'30ml',price:300},{size:'60ml',price:600},{size:'750ml',price:5500}] },
+                    { name: "Fireball Cinnamon Whisky", prices: [{size:'30ml',price:80},{size:'60ml',price:160},{size:'750ml',price:1400}] }
                 ]
             },
             {
-                category: "Veg Starters",
+                category: "Whisky Base",
                 items: [
-                    { name: "Finger Chips", price: 95 },
-                    { name: "Masala Papad", price: 35 },
-                    { name: "Roasted & Fry Papad", price: 25 },
-                    { name: "Onion Baje", price: 100 },
-                    { name: "Onion Pakoda", price: 100 },
-                    { name: "Capsicum Pakoda", price: 110 },
-                    { name: "Paneer Pakoda", price: 130 },
-                    { name: "Gobi Chilly", price: 110 },
-                    { name: "Gobi Pepper Fry", price: 110 },
-                    { name: "Gobi 65", price: 110 },
-                    { name: "Paneer Manchurian", price: 140 },
-                    { name: "Paneer Chilly", price: 140 },
-                    { name: "Mushroom Manchurian", price: 140 },
-                    { name: "Mushroom Chilly", price: 140 },
-                    { name: "Paneer Hot Pan", price: 180 }
+                    { name: "Whisky Sour", ingredients: "Whisky, Lime Juice, Triple Sec, Pineapple Juice", price: 300 },
+                    { name: "Angle's Whispering", ingredients: "Whisky, Lime Juice, Peach Puree, Orange Juice, Rose wine", price: 300 },
+                    { name: "Alliance Ship", ingredients: "Whisky, Passion puree, Lime Juice, Blue Curacao, Pineapple Juice", price: 250 }
                 ]
             },
             {
-                category: "Veg Special",
+                category: "Vodka Base",
                 items: [
-                    { name: "Gobi Ghee Roast", price: 150 },
-                    { name: "Paneer Ghee Roast", price: 180 },
-                    { name: "Mushroom Ghee Roast", price: 160 },
-                    { name: "Babycorn Ghee Roast", price: 160 },
-                    { name: "Bhendi Fry", price: 95 },
-                    { name: "Nurge (Drumstick) Fry", price: 95 },
-                    { name: "Peere Fry", price: 95 }
+                    { name: "Pink Panther", ingredients: "Vodka, Peach Puree, Lime Juice, Cranberry Juice, Lemonade", price: 260 },
+                    { name: "Sex On The Beach", ingredients: "Vodka, Orange Juice, Cranberry Juice, Peach Schnapps", price: 260 },
+                    { name: "Blue Moon", ingredients: "Vodka, Blue curacao, Lime Juice, Ginger Syrup, Grass Syrup, Lychee Juice", price: 260 },
+                    { name: "Cosmopolitan", ingredients: "Vodka, Lime Juice, Cranberry Juice, Triple Sec", price: 260 },
+                    { name: "Pussy Foot", ingredients: "Vodka, Orange Juice, Passion fruit Puree, Lime Juice, Grenadine", price: 260 }
                 ]
             },
             {
-                category: "Chicken Starters",
+                category: "Rum Base",
                 items: [
-                    { name: "Chicken Manchurian (Bone)", price: 140 },
-                    { name: "Chicken Chilly (Bone)", price: 140 },
-                    { name: "Chicken 65", price: 190 },
-                    { name: "Chicken Ghee Roast (Full)", price: 380, bestSeller: true },
-                    { name: "Chicken Ghee Roast (Half)", price: 200, bestSeller: true },
-                    { name: "Chicken Lollypop (8 Pcs)", price: 140 },
-                    { name: "Chicken Butter Garlic", price: 190 }
+                    { name: "Mojito", ingredients: "White Rum, Lime Chunks, Mint leaves, Simple Syrup, Soda", price: 300 },
+                    { name: "Mojito Pitcher", ingredients: "Choose flavour", flavors: ["Watermelon", "Mango"], price: 999 },
+                    { name: "Pina Colada", ingredients: "Choose flavour", flavors: ["Classic", "Blue", "Coffee"], price: 380 },
+                    { name: "Daiquiri", ingredients: "Choose flavour", flavors: ["Strawberry", "Blueberry", "Mango Chilli", "Kiwi"], price: 350 },
+                    { name: "Hot Toddy", ingredients: "Indian Spices with Whiskey, Brandy, or Dark Rum", price: 350 }
                 ]
             },
             {
-                category: "Mutton Starters",
+                category: "Long Cocktails",
                 items: [
-                    { name: "Mutton Manchurian", price: 240 },
-                    { name: "Mutton Chilly", price: 240 },
-                    { name: "Mutton Sukka", price: 220 }
+                    { name: "Long Island Ice Tea", ingredients: "Vodka, White Rum, Gin, Tequila, Cointreau, Lime Juice, Coke", price: 400 },
+                    { name: "Long Beach Ice Tea", ingredients: "Five White spirits, Lime Juice, Cranberry Juice", price: 400 },
+                    { name: "Bull Frog", ingredients: "Five White Spirits, Lime Juice, Blue Curacao, Red Bull", price: 450 },
+                    { name: "Flavoured Long Island Ice Tea", ingredients: "Choose flavour", flavors: ["Strawberry", "Blueberry", "Blue Curacao", "Mango Chilli", "Kiwi"], price: 400 }
                 ]
             },
             {
-                category: "Tandoori",
+                category: "Classics",
                 items: [
-                    { name: "Chicken Tandoori (Full)", price: 350 },
-                    { name: "Chicken Tandoori (Half)", price: 190 },
-                    { name: "Chicken Tikka", price: 180 },
-                    { name: "Malai Kabab", price: 180 },
-                    { name: "Chicken Kalmi Kabab (2 Pcs)", price: 160 },
-                    { name: "Chicken Kalmi Kabab (1 Pc)", price: 90 },
-                    { name: "Paneer Tikka", price: 150 },
-                    { name: "Mushroom Tikka", price: 150 }
+                    { name: "Margarita", price: 500 },
+                    { name: "Tequila Sunrise", price: 500 },
+                    { name: "Sangria (Red or White)", ingredients: "Wine, Brandy & Fruits", price: 350 }
                 ]
             },
             {
-                category: "North Indian Veg",
+                category: "Frappe & Shake",
                 items: [
-                    { name: "Dal Fry", price: 95 },
-                    { name: "Dal Tadka", price: 95 },
-                    { name: "Veg Kolhapuri", price: 125 },
-                    { name: "Veg Hyderabadi", price: 125 },
-                    { name: "Veg Kadai", price: 125 },
-                    { name: "Veg Handi", price: 125 },
-                    { name: "Paneer Butter Masala", price: 140 },
-                    { name: "Mushroom Masala", price: 140 }
+                    { name: "Cold Coffee Classic", ingredients: "Milk, Coffee Frappe, Simple Syrup", price: 150 },
+                    { name: "Cold Coffee", ingredients: "Milk, Coffee Frappe, Flavoured Syrup", flavors: ["Hazelnut", "Tiramisu"], price: 170 }
                 ]
             },
             {
-                category: "Main Course",
+                category: "House Mocktails",
                 items: [
-                    { name: "Veg Biriyani", price: 130, bestSeller: true },
-                    { name: "Egg Biriyani", price: 130, bestSeller: true },
-                    { name: "Chicken Biriyani (Full)", price: 150, bestSeller: true },
-                    { name: "Chicken Biriyani (Half)", price: 90, bestSeller: true },
-                    { name: "Mutton Biriyani (Full)", price: 220, bestSeller: true },
-                    { name: "Ghee Rice", price: 90 },
-                    { name: "Veg Pulav", price: 110 }
+                    { name: "Mojito's", ingredients: "Choice of Flavours", flavors: ["Strawberry", "Watermelon", "Blueberry", "Mango Chilli", "Lime & Mint"], price: 180 },
+                    { name: "Sea Breeze", ingredients: "Orange Juice, Pineapple Juice, Peach Puree, Dash of Blue Curacao", price: 180 },
+                    { name: "Ice Tea's", ingredients: "Choose flavour", flavors: ["Lime", "Peach", "Passion Fruit", "Orange"], price: 150 },
+                    { name: "Fruit Punch", ingredients: "A Creamy Mixer of Mix Fruits", price: 180 },
+                    { name: "Virgin Colada", ingredients: "A Creamy mixture of Coconut & Pineapple", price: 180 },
+                    { name: "Blossoms", ingredients: "Choice of Flavours", flavors: ["Strawberry", "Blueberry", "Mango", "Kiwi"], price: 180 },
+                    { name: "Blue Lagoon", ingredients: "Lime Juice, Simple Syrup, Blue Curacao, Soda, Lemon Fizz", price: 170 },
+                    { name: "Micky Mouse", ingredients: "Chocolate Syrup, Ice Cream, Thums Up", price: 180 }
                 ]
             },
             {
-                category: "Chinese Main",
+                category: "Draught Beer",
                 items: [
-                    { name: "Veg Fried Rice", price: 110 },
-                    { name: "Veg Schezwan Fried Rice", price: 120 },
-                    { name: "Chicken Fried Rice", price: 130 },
-                    { name: "Chicken Schezwan Fried Rice", price: 140 },
-                    { name: "Veg Hakka Noodles", price: 130 },
-                    { name: "Veg Schezwan Noodles", price: 130 },
-                    { name: "Chicken Hakka Noodles", price: 140 },
-                    { name: "Chicken Schezwan Noodles", price: 150 }
+                    { name: "Budweiser Premium", prices: [{size:'330ml',price:185},{size:'500ml',price:280},{size:'Pitcher',price:835},{size:'Tower',price:1800}] },
+                    { name: "Budweiser Magnum",  prices: [{size:'330ml',price:200},{size:'500ml',price:300},{size:'Pitcher',price:900},{size:'Tower',price:1900}] }
                 ]
             },
             {
-                category: "Breads",
+                category: "Bottled Beer",
                 items: [
-                    { name: "Roti", price: 25 },
-                    { name: "Naan", price: 30 },
-                    { name: "Kulcha", price: 30 },
-                    { name: "Garlic Naan", price: 60 },
-                    { name: "Cheese Naan", price: 70 }
+                    { name: "U.B. Lager / U.B. Strong",              prices: [{size:'650ml',price:"250/260"},{size:'330ml',price:130}] },
+                    { name: "Kingfisher / Kingfisher Strong",              prices: [{size:'650ml',price:275},{size:'330ml',price:"180/190"}] },
+                    { name: "Tuborg Green / Tuborg Strong",            prices: [{size:'650ml',price:280},{size:'330ml',price:"180/190"}] },
+                    { name: "Budweiser / Budweiser Magnum",               prices: [{size:'650ml',price:"325/360"},{size:'330ml',price:"215/225"}] },
+                    { name: "Carlsberg Smooth / Carlsberg Elephant",      prices: [{size:'650ml',price:"325/360"},{size:'330ml',price:"215/225"}] },
+                    { name: "Heineken Silver",                  prices: [{size:'650ml',price:360},{size:'330ml',price:250}] },
+                    { name: "RC Strong",                       prices: [{size:'650ml',price:235},{size:'330ml',price:125}] },
+                    { name: "Corona",                          prices: [{size:'650ml',price:290}] },
+                    { name: "Hoegaarden ",               prices: [{size:'650ml',price:270}] },
+                      { name: "Hoegaarden Peach",               prices: [{size:'650ml',price:270}] },
+                    { name: "Tuborg Classic",                   prices: [{size:'650ml',price:330},{size:'330ml',price:210}] }
                 ]
             },
             {
-                category: "South Indian",
+                category: "Wine",
                 items: [
-                    { name: "Anjal/Pomfret/Squid", price: "Seasonal" },
-                    { name: "Chicken Sukka (Full)", price: 100 },
-                    { name: "Chicken Sukka (Half)", price: 60 },
-                    { name: "Kori Rotti", price: 100 }
+                    { name: "Goans",                             prices: [{size:'Glass 180ml',price:80}] },
+                    { name: "1000 Port Gold",                    prices: [{size:'Glass 180ml',price:150},{size:'Bottle 750ml',price:600}] },
+                    { name: "Sula Canin Blanc (White)",           prices: [{size:'Glass 180ml',price:270},{size:'Bottle 750ml',price:1080}] },
+                    { name: "Sula Cabernet Shiraz (Red)",         prices: [{size:'Glass 180ml',price:335},{size:'Bottle 750ml',price:1340}] },
+                    { name: "Noi Sparkling",                     prices: [{size:'Bottle 750ml',price:1300}] },
+                    { name: "Dia White / Red",                   prices: [{size:'Glass 180ml',price:170},{size:'Bottle 750ml',price:680}] },
+                    { name: "Jacob's Creek Red / White",          prices: [{size:'Glass 180ml',price:450},{size:'Bottle 750ml',price:1800}] }
                 ]
             },
             {
-                category: "Beverages",
+                category: "Breezer",
                 items: [
-                    { name: "Soft Drink (300ml)", price: 30 },
-                    { name: "Soft Drink (500ml)", price: 55 },
-                    { name: "Soft Drink (2 Ltr)", price: 150 },
-                    { name: "Kinley Water (1 Ltr)", price: 25 }
+                    { name: "Bro Code",                                              prices: [{size:'180ml',price:230}] },
+                    { name: "Bacardi Breezer", type: 'breezer_flavor', flavors: ["Blackberry","Cranberry","Orange","Blueberry","Watermelon"], price: 170, size: "180ml" },
+                    { name: "Bacardi Plus",                                           prices: [{size:'180ml',price:150}] }
                 ]
             },
             {
-                category: "Bar: Cocktails",
+                category: "Premium Scotch Whisky",
                 items: [
-                    { 
-                        name: "Gimlet", 
-                        prices: [
-                            { size: 'Blueberry', price: 180 },
-                            { size: 'Bubblegum', price: 180 },
-                            { size: 'Guava', price: 180 }
-                        ] 
-                    }
+                    { name: "The Glenlivet 12 Years (Single Malt)", prices: [{size:'750ml',price:8200}] },
+                    { name: "Black Label",  prices: [{size:'50ml',price:610},{size:'200ml',price:2000},{size:'750ml',price:6700}] },
+                    { name: "Jack Daniels", prices: [{size:'750ml',price:5800}] }
                 ]
             },
             {
-                category: "Bar: Whisky (Regular)",
+                category: "Regular Whisky",
                 items: [
-                    { name: "Bagpiper", prices: [ { size: '30ml', price: 25 }, { size: '60ml', price: 40 }, { size: '90ml', price: 60 }, { size: '180ml', price: 120 }, { size: '750ml', price: 480 } ] },
-                    { name: "Officers Choice", prices: [ { size: '30ml', price: 25 }, { size: '60ml', price: 40 }, { size: '90ml', price: 60 }, { size: '180ml', price: 120 }, { size: '750ml', price: 480 } ] },
-                    { name: "Directors Special", prices: [ { size: '30ml', price: 30 }, { size: '60ml', price: 55 }, { size: '90ml', price: 80 }, { size: '180ml', price: 160 }, { size: '750ml', price: 640 } ] },
-                    { name: "DSP Black", prices: [ { size: '30ml', price: 30 }, { size: '60ml', price: 60 }, { size: '90ml', price: 90 }, { size: '180ml', price: 180 }, { size: '750ml', price: 720 } ] },
-                    { name: "Imperial Blue", prices: [ { size: '30ml', price: 35 }, { size: '60ml', price: 65 }, { size: '90ml', price: 100 }, { size: '180ml', price: 190 }, { size: '750ml', price: 760 } ] },
-                    { name: "Mc. Dowells No. 1", prices: [ { size: '30ml', price: 35 }, { size: '60ml', price: 65 }, { size: '90ml', price: 100 }, { size: '180ml', price: 190 }, { size: '750ml', price: 760 } ] },
-                    { name: "Mc. Dowells Luxury", prices: [ { size: '30ml', price: 35 }, { size: '60ml', price: 65 }, { size: '90ml', price: 100 }, { size: '180ml', price: 190 }, { size: '750ml', price: 760 } ] },
-                    { name: "Royal Challenge", prices: [ { size: '30ml', price: 50 }, { size: '60ml', price: 100 }, { size: '90ml', price: 150 }, { size: '180ml', price: 300 }, { size: '750ml', price: 1200 } ] },
-                    { name: "Royal Stag", prices: [ { size: '30ml', price: 50 }, { size: '60ml', price: 95 }, { size: '90ml', price: 145 }, { size: '180ml', price: 285 }, { size: '750ml', price: 1140 } ] },
-                    { name: "Signature", prices: [ { size: '30ml', price: 60 }, { size: '60ml', price: 115 }, { size: '90ml', price: 175 }, { size: '180ml', price: 345 }, { size: '750ml', price: 1380 } ] },
-                    { name: "Blenders Pride", prices: [ { size: '30ml', price: 70 }, { size: '60ml', price: 140 }, { size: '90ml', price: 210 }, { size: '180ml', price: 420 }, { size: '750ml', price: 1680 } ] },
-                    { name: "Antiquity Blue", prices: [ { size: '30ml', price: 70 }, { size: '60ml', price: 140 }, { size: '90ml', price: 210 }, { size: '180ml', price: 420 }, { size: '750ml', price: 1680 } ] }
+                    { name: "Bagpiper / Officers Choice",       prices: [{size:'30ml',price:40},{size:'60ml',price:80},{size:'90ml',price:120},{size:'180ml',price:240},{size:'750ml',price:950}] },
+                    { name: "DSP Black / Directors Special",    prices: [{size:'30ml',price:45},{size:'60ml',price:90},{size:'90ml',price:135},{size:'180ml',price:230},{size:'750ml',price:1100}] },
+                    { name: "McDowells No.1 / Imperial Blue",   prices: [{size:'30ml',price:55},{size:'60ml',price:110},{size:'90ml',price:165},{size:'180ml',price:320},{size:'750ml',price:1300}] },
+                    { name: "McDowells Luxury",                 prices: [{size:'30ml',price:55},{size:'60ml',price:110},{size:'90ml',price:165},{size:'180ml',price:320},{size:'750ml',price:1300}] },
+                    { name: "Royal Challenge / Royal Stag",     prices: [{size:'30ml',price:80},{size:'60ml',price:155},{size:'90ml',price:235},{size:'180ml',price:450},{size:'750ml',price:1850}] },
+                    { name: "Signature / Blenders Pride",       prices: [{size:'30ml',price:100},{size:'60ml',price:200},{size:'90ml',price:300},{size:'180ml',price:600},{size:'750ml',price:2500}] },
+                    { name: "Oaksmith Gold",                    prices: [{size:'30ml',price:100},{size:'60ml',price:200},{size:'90ml',price:300},{size:'180ml',price:600},{size:'750ml',price:2500}] },
+                    { name: "Antiquity Blue",                   prices: [{size:'30ml',price:110},{size:'60ml',price:220},{size:'90ml',price:330},{size:'180ml',price:650},{size:'750ml',price:2750}] }
                 ]
             },
             {
-                category: "Bar: Scotch",
+                category: "Premium Whisky",
                 items: [
-                    { name: "100 Pipers", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
-                    { name: "Black & White", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
-                    { name: "Black Dog 8yrs", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
-                    { name: "Teachers", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
-                    { name: "Vat 69", prices: [ { size: '30ml', price: 105 }, { size: '60ml', price: 210 }, { size: '90ml', price: 315 }, { size: '180ml', price: 625 }, { size: '750ml', price: 2500 } ] },
-                    { name: "Black Dog 12yrs", prices: [ { size: '30ml', price: 150 }, { size: '60ml', price: 300 }, { size: '90ml', price: 450 }, { size: '180ml', price: 900 }, { size: '750ml', price: 3600 } ] }
+                    { name: "Black & White",                    prices: [{size:'30ml',price:135},{size:'60ml',price:270},{size:'90ml',price:405},{size:'180ml',price:810},{size:'750ml',price:3250}] },
+                    { name: "Teachers / 100 Pipers / Vat 69",   prices: [{size:'30ml',price:135},{size:'60ml',price:270},{size:'90ml',price:405},{size:'180ml',price:810},{size:'750ml',price:3250}] },
+                    { name: "Royal Ranthambore",                 prices: [{size:'30ml',price:135},{size:'60ml',price:270},{size:'90ml',price:405},{size:'180ml',price:810},{size:'750ml',price:3250}] },
+                    { name: "Dewar's White Label",               prices: [{size:'30ml',price:135},{size:'60ml',price:270},{size:'90ml',price:405},{size:'180ml',price:775},{size:'750ml',price:3100}] },
+                    { name: "Teachers 50",                       prices: [{size:'30ml',price:195},{size:'60ml',price:385},{size:'90ml',price:580},{size:'180ml',price:1150},{size:'750ml',price:4600}] },
+                    { name: "Ballantine's Finest",               prices: [{size:'30ml',price:195},{size:'60ml',price:385},{size:'90ml',price:580},{size:'200ml',price:1200},{size:'750ml',price:4600}] },
+                    { name: "Jim Beam (Bourbon)",                prices: [{size:'30ml',price:170},{size:'60ml',price:335},{size:'90ml',price:505},{size:'180ml',price:1000},{size:'750ml',price:4000}] },
+                    { name: "Amrut Fusion (Single Malt)",        prices: [{size:'30ml',price:200},{size:'60ml',price:400},{size:'90ml',price:600},{size:'180ml',price:1200},{size:'750ml',price:4800}] },
+                    { name: "Red Label",                         prices: [{size:'30ml',price:200},{size:'60ml',price:400},{size:'90ml',price:600},{size:'180ml',price:1200},{size:'750ml',price:4800}] },
+                    { name: "Jameson Irish Whiskey",              prices: [{size:'30ml',price:195},{size:'60ml',price:385},{size:'90ml',price:580},{size:'200ml',price:1200},{size:'750ml',price:4600}] },
+                    { name: "Paul John (Single Malt)",            prices: [{size:'30ml',price:135},{size:'60ml',price:270},{size:'90ml',price:405},{size:'200ml',price:860},{size:'750ml',price:3250}] }
                 ]
             },
             {
-                category: "Bar: Rum, Vodka, Gin & Brandy",
+                category: "Rum",
                 items: [
-                    { name: "Kodays Rum", prices: [ { size: '30ml', price: 20 }, { size: '60ml', price: 35 }, { size: '90ml', price: 50 }, { size: '180ml', price: 100 }, { size: '750ml', price: 400 } ] },
-                    { name: "Old Monk", prices: [ { size: '30ml', price: 25 }, { size: '60ml', price: 45 }, { size: '90ml', price: 70 }, { size: '180ml', price: 135 }, { size: '750ml', price: 540 } ] },
-                    { name: "Mc. Dowells Rum", prices: [ { size: '30ml', price: 25 }, { size: '60ml', price: 45 }, { size: '90ml', price: 60 }, { size: '180ml', price: 120 }, { size: '750ml', price: 480 } ] },
-                    { name: "Bacardi White Rum", prices: [ { size: '30ml', price: 80 }, { size: '60ml', price: 160 }, { size: '90ml', price: 240 }, { size: '180ml', price: 480 }, { size: '750ml', price: 1920 } ] },
-                    { name: "Romonov Vodka", prices: [ { size: '30ml', price: 35 }, { size: '60ml', price: 65 }, { size: '90ml', price: 95 }, { size: '180ml', price: 190 }, { size: '750ml', price: 760 } ] },
-                    { name: "Smirnoff Vodka", prices: [ { size: '30ml', price: 70 }, { size: '60ml', price: 140 }, { size: '90ml', price: 210 }, { size: '180ml', price: 415 }, { size: '750ml', price: 1660 } ] },
-                    { name: "Blue Ribbon Gin", prices: [ { size: '30ml', price: 30 }, { size: '60ml', price: 60 }, { size: '90ml', price: 90 }, { size: '180ml', price: 180 }, { size: '750ml', price: 720 } ] },
-                    { name: "Mansion House Brandy", prices: [ { size: '30ml', price: 40 }, { size: '60ml', price: 75 }, { size: '90ml', price: 115 }, { size: '180ml', price: 225 }, { size: '750ml', price: 900 } ] },
-                    { name: "Mc. Dowells Brandy", prices: [ { size: '30ml', price: 30 }, { size: '60ml', price: 60 }, { size: '90ml', price: 90 }, { size: '180ml', price: 180 }, { size: '750ml', price: 720 } ] }
+                    { name: "Old Monk",                          prices: [{size:'30ml',price:50},{size:'60ml',price:100},{size:'90ml',price:145},{size:'180ml',price:250},{size:'750ml',price:1100}] },
+                    { name: "McDowells Rum",                     prices: [{size:'30ml',price:50},{size:'60ml',price:100},{size:'90ml',price:145},{size:'180ml',price:250},{size:'750ml',price:1100}] },
+                    { name: "Bacardi White Rum / Lemon Rum",      prices: [{size:'30ml',price:115},{size:'60ml',price:230},{size:'90ml',price:345},{size:'180ml',price:690},{size:'750ml',price:2800}] },
+                    { name: "Bacardi Mango Chilli Rum",           prices: [{size:'30ml',price:110},{size:'60ml',price:220},{size:'90ml',price:330},{size:'180ml',price:650},{size:'750ml',price:2800}] }
+                ]
+            },
+            {
+                category: "Vodka",
+                items: [
+                    { name: "Absolute / Raspberri",              prices: [{size:'30ml',price:200},{size:'60ml',price:400},{size:'90ml',price:600},{size:'180ml',price:1200},{size:'750ml',price:4600}] },
+                    { name: "Smirnoff / Flavours",               prices: [{size:'30ml',price:115},{size:'60ml',price:230},{size:'90ml',price:345},{size:'180ml',price:690},{size:'750ml',price:2750}] },
+                    { name: "Magic Moments Flavours",            prices: [{size:'30ml',price:85},{size:'60ml',price:170},{size:'90ml',price:255},{size:'180ml',price:510},{size:'750ml',price:1850}] },
+                    { name: "Romanov / Romanov Orange",           prices: [{size:'30ml',price:65},{size:'60ml',price:130},{size:'90ml',price:195},{size:'180ml',price:390},{size:'750ml',price:1400}] },
+                    { name: "Oxyzen / Oxyzen Vanilla",           prices: [{size:'30ml',price:65},{size:'60ml',price:130},{size:'90ml',price:195},{size:'180ml',price:390},{size:'750ml',price:1400}] }
+                ]
+            },
+            {
+                category: "Gin",
+                items: [
+                    { name: "Blue Ribbon",                       prices: [{size:'30ml',price:65},{size:'60ml',price:130},{size:'90ml',price:195},{size:'180ml',price:390},{size:'750ml',price:1400}] },
+                    { name: "Bombay Sapphire / Jaisalmer",        prices: [{size:'30ml',price:200},{size:'60ml',price:400},{size:'90ml',price:600},{size:'180ml',price:1200},{size:'750ml',price:4600}] },
+                    { name: "Amrut Nilgiris",                    prices: [{size:'30ml',price:140},{size:'60ml',price:280},{size:'90ml',price:420},{size:'180ml',price:840},{size:'750ml',price:3250}] }
+                ]
+            },
+            {
+                category: "Brandy",
+                items: [
+                    { name: "Mansion House",                     prices: [{size:'30ml',price:60},{size:'60ml',price:120},{size:'90ml',price:180},{size:'180ml',price:360},{size:'750ml',price:1300}] },
+                    { name: "McDowells Brandy",                  prices: [{size:'30ml',price:60},{size:'60ml',price:120},{size:'90ml',price:180},{size:'180ml',price:360},{size:'750ml',price:1300}] },
+                    { name: "Morpheus Brandy",                   prices: [{size:'30ml',price:95},{size:'60ml',price:190},{size:'90ml',price:285},{size:'180ml',price:570},{size:'750ml',price:2100}] }
+                ]
+            },
+          
+        ];
+
+        // Keep Bar Bites list canonical and overwrite any old items from saved menu data.
+        const BAR_BITES_ITEMS = [
+            { name: "Plain Peanut", price: 50, type: "Veg" },
+            { name: "Raja Masala", price: 100, type: "Veg" },
+            { name: "Masala Papad", price: 60, type: "Veg" },
+            { name: "Roasted Papad", price: 25, type: "Veg" },
+            { name: "Fry Papad", price: 25, type: "Veg" },
+            { name: "Finger Chips", price: 110, type: "Veg" },
+            { name: "Onion Baje", price: 130, type: "Veg" },
+            { name: "Veg Pakoda", price: 130, type: "Veg" },
+            { name: "Capsicum Pakoda", price: 140, type: "Veg" },
+            { name: "Green Peas Masala Fry", price: 140, type: "Veg" },
+            { name: "Green Peas Pepper Fry", price: 160, type: "Veg" },
+            { name: "Boiled Egg", price: 40, type: "Egg" },
+            { name: "Egg Pakoda", price: 130, type: "Egg" }
+        ];
+
+        const BEVERAGES_DESSERTS_CATEGORIES = [
+            {
+                category: "Soft Drinks",
+                items: [
+                    { name: "Soft Drinks - 2LTR", price: 150 },
+                    { name: "Kinley Soda - 300 ML", price: 20 },
+                    { name: "Kinley Soda - 500 ML", price: 30 },
+                    { name: "Bottle Water - 1LTR", price: 30 },
+                    { name: "Local Soda/Soft Drinks", price: 20 },
+                    { name: "Soft Drinks - 300 ML", price: 35 },
+                    { name: "Soft Drinks - 500 ML", price: 70 },
+                    { name: "Tonic Water Can / Ginger Ale", price: 90 },
+                    { name: "Red Bull / Flavor Water Melon", price: 150 },
+                    { name: "Diet Coke (Can)", price: 65 },
+                    { name: "Tropicana Juice (180ML)", flavors: ["Cranberry", "Orange"], price: 60 }
+                ]
+            },
+            {
+                category: "Milk Shakes",
+                items: [
+                    { name: "Oreo Milk Shake", price: 140 },
+                    { name: "Apple Milk Shake", price: 130 },
+                    { name: "Vanilla Milk Shake", price: 130 },
+                    { name: "Chocolate Milk Shake", price: 130 },
+                    { name: "Strawberry Milk Shake", price: 130 }
+                ]
+            },
+            {
+                category: "Juices",
+                items: [
+                    { name: "Pineapple", price: 110 },
+                    { name: "Musambi", price: 110 },
+                    { name: "Orange", price: 110 },
+                    { name: "Water Melon", price: 110 },
+                    { name: "Fresh Lime Soda", price: 70 },
+                    { name: "Fresh Lime Juice", price: 60 },
+                    { name: "Butter Milk", price: 50 }
+                ]
+            },
+            {
+                category: "Desserts",
+                items: [
+                    { name: "Choice of Ice Cream", cartBaseName: "Ice Cream", ingredients: "Choose flavour", flavors: ["Vanilla", "Butter Scotch", "Chocolate", "Chickoo", "Strawberry", "Mango"], price: 120 },
+                    { name: "Gud Bud", price: 170 },
+                    { name: "Fruit Salad with Ice Cream", price: 130 },
+                    { name: "Gulab Jamun with Ice Cream", price: 130 },
+                    { name: "Gulab Jamun", price: 80 },
+                    { name: "Brownie", price: 130 },
+                    { name: "Choco Lava", price: 150 },
+                    { name: "Choclate Crumble", price: 150 },
+                    { name: "Brownie with Ice Cream", price: 200 },
+                    { name: "Choco Lava with Ice Cream", price: 210 },
+                    { name: "Choclate Crumble with Ice Cream", price: 210 }
                 ]
             }
         ];
 
+        function upsertBarBitesCategory() {
+            const barBitesCategory = {
+                category: "Bar Bites & Munchies",
+                items: BAR_BITES_ITEMS
+            };
+            const existingIndex = menuData.findIndex(cat => cat.category === barBitesCategory.category);
+            if (existingIndex >= 0) {
+                menuData[existingIndex].items = [...BAR_BITES_ITEMS];
+            } else {
+                menuData.push(barBitesCategory);
+            }
+        }
+
+        function upsertBeveragesAndDessertsCategories() {
+            BEVERAGES_DESSERTS_CATEGORIES.forEach(category => {
+                const existingIndex = menuData.findIndex(cat => cat.category === category.category);
+                if (existingIndex >= 0) {
+                    menuData[existingIndex].items = [...category.items];
+                } else {
+                    menuData.push({
+                        category: category.category,
+                        items: [...category.items]
+                    });
+                }
+            });
+        }
+
         // --- 3. INITIALIZATION ---
-        window.onload = function() {
+        window.onload = function () {
             // Load from LocalStorage if available
             const storedMenu = localStorage.getItem('bacchusMenuData');
             if (storedMenu) {
                 menuData = JSON.parse(storedMenu);
             }
 
+            upsertBarBitesCategory();
+            upsertBeveragesAndDessertsCategories();
+
             // Assign Types to Categories
             const categoryTypes = {
                 "Veg Soup": "food",
                 "Non-Veg Soup": "food",
-                "Veg Starters": "bites",
-                "Veg Special": "bites",
-                "Chicken Starters": "bites",
-                "Mutton Starters": "bites",
-                "Tandoori": "bites",
+                "Bar Bites & Munchies": "bites",
                 "North Indian Veg": "food",
                 "Main Course": "food",
                 "Chinese Main": "food",
                 "Breads": "food",
                 "South Indian": "food",
                 "Beverages": "bar",
-                "Bar: Cocktails": "bar",
-                "Bar: Whisky (Regular)": "bar",
-                "Bar: Scotch": "bar",
-                "Bar: Rum, Vodka, Gin & Brandy": "bar"
+                "Bacchus Inn Specials": "cocktails",
+                // New On The Menu
+                "Soups": "new",
+                "South Indian Starters": "new",
+                "Tandoori": "new",
+                "North Indian Gravy": "new",
+                "Oriental Veg Starters": "new",
+                "Oriental Non-Veg Starters": "new",
+                "Wings Special": "new",
+                "Noodles & Rice": "new",
+               
+                // Bar
+                "Draught Beer": "bar",
+                "Bottled Beer": "bar",
+                "Wine": "bar",
+                "Breezer": "bar",
+                "Premium Scotch Whisky": "bar",
+                "Regular Whisky": "bar",
+                "Premium Whisky": "bar",
+                "Rum": "bar",
+                "Vodka": "bar",
+                "Gin": "bar",
+                "Brandy": "bar",
+                // Cocktails
+                "Whisky Base": "cocktails",
+                "Vodka Base": "cocktails",
+                "Rum Base": "cocktails",
+                "Long Cocktails": "cocktails",
+                "Classics": "cocktails",
+                "Frappe & Shake": "cocktails",
+                "House Mocktails": "mocktails",
+                // Beverages and Desserts
+                "Soft Drinks": "bevdess",
+                "Milk Shakes": "bevdess",
+                "Juices": "bevdess",
+                "Desserts": "bevdess"
             };
-            
+
             // Helper to check if item is Veg
+            const isFishOrSeafood = (catName, itemName) => {
+                const name = itemName.toLowerCase();
+                const cat = catName.toLowerCase();
+                const seafoodKeywords = [
+                    'fish', 'seafood', 'prawn', 'prawns', 'squid', 'crab',
+                    'anjal', 'pomfret', 'banguda', 'kallur', 'snapper', 'eri'
+                ];
+                return seafoodKeywords.some(k => name.includes(k) || cat.includes(k));
+            };
+
             const isItemVeg = (catName, itemName) => {
                 const name = itemName.toLowerCase();
                 const cat = catName.toLowerCase();
-                
+
                 // Explicit Non-Veg keywords
-                const nvKeywords = ['chicken', 'mutton', 'egg', 'fish', 'prawn', 'squid', 'anjal', 'pomfret', 'kori rotti', 'non-veg', 'malai kabab'];
-                
+                const nvKeywords = ['chicken', 'mutton', 'egg', 'fish', 'prawn', 'squid', 'anjal', 'pomfret', 'kori rotti', 'gravy rotti', 'biryani rice', 'non-veg'];
+
                 if (nvKeywords.some(k => name.includes(k))) return false;
                 if (cat.includes('non-veg') || cat.includes('chicken') || cat.includes('mutton')) return false;
-                
+
                 return true;
+            };
+
+            const isItemEgg = (catName, itemName) => {
+                const name = itemName.toLowerCase();
+                const cat = catName.toLowerCase();
+                const eggKeywords = ['egg', 'omlet', 'omelet'];
+                // Keep fish/seafood items non-veg even if the word "egg" appears.
+                if (isFishOrSeafood(catName, itemName)) return false;
+                return cat.includes('egg') || eggKeywords.some(k => name.includes(k));
             };
 
             menuData.forEach(cat => {
                 cat.type = categoryTypes[cat.category] || 'food';
+                // Some categories should appear in more than one top tab.
+                if (cat.category === 'Frappe & Shake') {
+                    cat.extraTypes = ['bevdess'];
+                }
                 cat.items.forEach(item => {
                     item.isVeg = isItemVeg(cat.category, item.name);
+                    item.isEgg = isItemEgg(cat.category, item.name);
                 });
             });
 
-            // Get Table Number from URL (e.g., ?table=5)
-            const urlParams = new URLSearchParams(window.location.search);
-            tableNumber = urlParams.get('table');
+            // Get table from URL QR (e.g., ?table=5); validate to prevent invalid values.
+            const GARDEN_TABLE_RANGES = [
+                [30, 62],
+                [76, 84],
+                [85, 95],
+                [101, 110]
+            ];
 
-            if (!tableNumber) {
-                tableNumber = prompt("Please enter your Table Number:");
-                if(!tableNumber) tableNumber = "Walk-in";
+            const isGardenTableNumber = (num) => GARDEN_TABLE_RANGES.some(([start, end]) => num >= start && num <= end);
+            const gardenRangeText = "30-62, 76-84, 85-95, 101-110";
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const tableParam = (urlParams.get('table') || '').trim();
+            const parsedTable = parseInt(tableParam.replace(/[^0-9]/g, ''), 10);
+
+            if (!Number.isNaN(parsedTable) && isGardenTableNumber(parsedTable)) {
+                tableNumber = String(parsedTable);
+            } else {
+                let promptValue = prompt(`Please enter your Garden Table Number (${gardenRangeText}):`);
+                let enteredTable = parseInt((promptValue || '').replace(/[^0-9]/g, ''), 10);
+
+                while (promptValue !== null && (Number.isNaN(enteredTable) || !isGardenTableNumber(enteredTable))) {
+                    promptValue = prompt(`Invalid table. Enter a valid Garden Table Number (${gardenRangeText}):`);
+                    enteredTable = parseInt((promptValue || '').replace(/[^0-9]/g, ''), 10);
+                }
+
+                tableNumber = promptValue === null ? "Walk-in" : String(enteredTable);
             }
             document.getElementById('table-display').innerText = tableNumber;
-            
+
             setMenuType('food');
             setDietFilter('all');
         };
@@ -543,14 +1143,14 @@
         // --- 4. RENDER FUNCTIONS ---
         function setMenuType(type) {
             currentType = type;
-            
+
             // Update buttons styling
-            ['food', 'bites', 'bar'].forEach(t => {
+            ['new', 'food', 'bites', 'bar', 'cocktails', 'mocktails', 'bevdess'].forEach(t => {
                 const btn = document.getElementById(`btn-${t}`);
                 if (t === type) {
-                    btn.className = "flex-1 py-2 rounded-lg font-bold text-sm bg-[#329da8] text-white shadow-md transform scale-105 transition-all";
+                    btn.className = "flex-shrink-0 px-3 py-2 rounded-lg font-bold text-sm bg-[#329da8] text-white shadow-md transition-all";
                 } else {
-                    btn.className = "flex-1 py-2 rounded-lg font-bold text-sm bg-white text-gray-500 hover:bg-gray-50 transition-all";
+                    btn.className = "flex-shrink-0 px-3 py-2 rounded-lg font-bold text-sm bg-white text-gray-500 hover:bg-gray-50 transition-all";
                 }
             });
 
@@ -559,11 +1159,12 @@
 
         function setDietFilter(type) {
             dietFilter = type;
-            
+
             // Reset all
             document.getElementById('btn-diet-all').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300";
             document.getElementById('btn-diet-veg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300";
             document.getElementById('btn-diet-non-veg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300";
+            document.getElementById('btn-diet-egg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-white text-gray-600 border-gray-300";
 
             // Set Active
             if (type === 'all') {
@@ -572,6 +1173,8 @@
                 document.getElementById('btn-diet-veg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-green-600 text-white border-green-600";
             } else if (type === 'non-veg') {
                 document.getElementById('btn-diet-non-veg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-red-600 text-white border-red-600";
+            } else if (type === 'egg') {
+                document.getElementById('btn-diet-egg').className = "px-4 py-1 rounded-full border text-sm font-medium transition-colors bg-yellow-500 text-white border-yellow-500";
             }
 
             renderMenu();
@@ -585,18 +1188,20 @@
         function renderMenu() {
             const navContainer = document.getElementById('category-nav');
             const menuContainer = document.getElementById('menu-container');
-            
+
             navContainer.innerHTML = "";
             menuContainer.innerHTML = "";
 
             menuData.forEach((cat, index) => {
-                if (cat.type !== currentType) return;
+                const appearsInCurrentType = cat.type === currentType || (Array.isArray(cat.extraTypes) && cat.extraTypes.includes(currentType));
+                if (!appearsInCurrentType) return;
 
                 const filteredItems = cat.items.filter(item => {
                     const matchesSearch = item.name.toLowerCase().includes(searchQuery);
-                    const matchesDiet = (dietFilter === 'all') || 
-                                        (dietFilter === 'veg' && item.isVeg) || 
-                                        (dietFilter === 'non-veg' && !item.isVeg);
+                    const matchesDiet = (dietFilter === 'all') ||
+                        (dietFilter === 'veg' && item.isVeg) ||
+                        (dietFilter === 'non-veg' && !item.isVeg && !item.isEgg) ||
+                        (dietFilter === 'egg' && item.isEgg);
                     return matchesSearch && matchesDiet;
                 });
                 if (filteredItems.length === 0) return;
@@ -605,14 +1210,14 @@
                 const navBtn = document.createElement('button');
                 navBtn.className = "px-4 py-2 mr-2 bg-gray-100 rounded-full text-sm font-medium hover:bg-[#329da8]/10 hover:text-[#329da8] transition";
                 navBtn.innerText = cat.category;
-                navBtn.onclick = () => document.getElementById(`cat-${index}`).scrollIntoView({behavior: 'smooth', block: 'start'});
+                navBtn.onclick = () => document.getElementById(`cat-${index}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
                 navContainer.appendChild(navBtn);
 
                 // Add to Menu List
                 const catSection = document.createElement('div');
                 catSection.id = `cat-${index}`;
                 catSection.className = "mb-8 scroll-mt-32";
-                
+
                 const catTitle = document.createElement('h2');
                 catTitle.className = "text-xl font-bold text-gray-800 mb-4 border-b pb-2";
                 catTitle.innerText = cat.category;
@@ -635,28 +1240,179 @@
                     itemCard.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-100";
 
                     // Best Seller Badge Logic
-                    const bestSellerBadge = item.bestSeller ? 
-                        `<span class="ml-2 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wide shadow-sm whitespace-nowrap"><i class="fas fa-star mr-1"></i>Best Seller</span>` 
+                    const bestSellerBadge = item.bestSeller ?
+                        `<span class="ml-2 bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wide shadow-sm whitespace-nowrap"><i class="fas fa-star mr-1"></i>Best Seller</span>`
                         : '';
-                    
+
                     // Find original index for admin functions (since filteredItems might be a subset)
                     const originalItemIndex = cat.items.findIndex(i => i.name === item.name);
+
+                    // ---- GIMLET FLAVOR PICKER ----
+                    if (item.type === 'gimlet') {
+                        const cardId = `gimlet-card-${index}`;
+                        const flavBtns = item.flavors.map(f =>
+                            `<button class="flavor-btn px-2 py-1.5 text-xs font-semibold border border-[#329da8]/40 rounded-lg text-[#329da8] hover:bg-[#329da8] hover:text-white transition" onclick="selectGimletFlavor('${cardId}','${f}')"> ${f}</button>`
+                        ).join('');
+                        const p = item.pricing;
+                        const sizeRows = [
+                            {label:'Mug — Lite',  price:p.mug.lite,   size:'Mug',     strength:'Lite'},
+                            {label:'Mug — Strong',price:p.mug.strong, size:'Mug',     strength:'Strong'},
+                            {label:'Pitcher — Lite',  price:p.pitcher.lite,   size:'Pitcher',strength:'Lite'},
+                            {label:'Pitcher — Strong',price:p.pitcher.strong, size:'Pitcher',strength:'Strong'},
+                            {label:'Tower — Lite',  price:p.tower.lite,   size:'Tower',  strength:'Lite'},
+                            {label:'Tower — Strong',price:p.tower.strong, size:'Tower',  strength:'Strong'},
+                        ];
+                        const sizeHTML = sizeRows.map(r =>
+                            `<div class="flex justify-between items-center py-1.5 border-b last:border-b-0">
+                                <span class="text-sm text-gray-700 font-medium">${r.label}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[#329da8] font-semibold text-sm">₹${r.price}</span>
+                                    <button class="size-btn bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-3 py-1 rounded-lg text-xs font-bold hover:bg-[#329da8] hover:text-white transition" data-size="${r.size}" data-strength="${r.strength}" data-price="${r.price}">ADD +</button>
+                                </div>
+                            </div>`
+                        ).join('');
+                        itemCard.innerHTML = `
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-2xl">🍋</span>
+                                <div>
+                                    <h3 class="font-bold text-gray-800 text-lg">Gimlet</h3>
+                                    <p class="text-xs text-gray-400">Bacchus Inn Special · Choose your flavour</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 mb-3">${flavBtns}</div>
+                            <div id="${cardId}-sizes" class="hidden mt-2 bg-gray-50 rounded-xl p-3">
+                                <p class="text-xs text-gray-500 mb-2">Flavour: <span class="selected-flavor font-bold text-[#329da8]"></span></p>
+                                ${sizeHTML}
+                            </div>
+                        `;
+                        itemsGrid.appendChild(itemCard);
+                        return;
+                    }
+
+                    // ---- SYRINGE FLAVOR PICKER ----
+                    if (item.type === 'syringe') {
+                        const cardId = `syringe-card-${index}`;
+                        const flavBtns = item.flavors.map(f =>
+                            `<button class="flavor-btn px-2 py-1.5 text-xs font-semibold border border-purple-400/50 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition" onclick="selectSyringeFlavor('${cardId}','${f}')"> ${f}</button>`
+                        ).join('');
+                        const packHTML = item.packs.map(pk =>
+                            `<button class="pack-btn flex-1 py-2 text-sm font-bold border border-purple-400/50 rounded-xl text-purple-700 hover:bg-purple-600 hover:text-white transition" data-pack="${pk.label}" data-price="${pk.price}">
+                                ${pk.label}<br><span class="text-xs font-normal">₹${pk.price}</span>
+                            </button>`
+                        ).join('');
+                        itemCard.innerHTML = `
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-2xl">💉</span>
+                                <div>
+                                    <h3 class="font-bold text-gray-800 text-lg">Kamikaze Syringe Shots</h3>
+                                    <p class="text-xs text-gray-400">Choose your flavour</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 mb-3">${flavBtns}</div>
+                            <div id="${cardId}-packs" class="hidden mt-2 bg-gray-50 rounded-xl p-3">
+                                <p class="text-xs text-gray-500 mb-2">Flavour: <span class="selected-flavor font-bold text-purple-600"></span></p>
+                                <div class="flex gap-2">${packHTML}</div>
+                            </div>
+                        `;
+                        itemsGrid.appendChild(itemCard);
+                        return;
+                    }
+
+                    // ---- BREEZER FLAVOR PICKER ----
+                    if (item.type === 'breezer_flavor') {
+                        const cardId = `breezer-card-${index}-${originalItemIndex}`;
+                        const flavBtns = item.flavors.map(f =>
+                            `<button class="breezer-flavor-btn px-3 py-1.5 text-xs font-semibold border border-pink-400/50 rounded-full text-pink-600 hover:bg-pink-500 hover:text-white transition" onclick="addBreezerflavor('${cardId}','${f}','${item.name}',${item.price},'${item.size}')">${f}</button>`
+                        ).join('');
+                        itemCard.innerHTML = `
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-2xl">🍹</span>
+                                <div>
+                                    <h3 class="font-bold text-gray-800">${item.name}</h3>
+                                    <p class="text-xs text-gray-400">180ml &middot; ₹${item.price} &middot; Choose flavour</p>
+                                </div>
+                            </div>
+                            <div id="${cardId}-flavors" class="flex flex-wrap gap-2">${flavBtns}</div>
+                            <p id="${cardId}-msg" class="text-xs text-green-600 font-semibold mt-2 hidden">Added to cart! ✓</p>
+                        `;
+                        itemsGrid.appendChild(itemCard);
+                        return;
+                    }
+
+                    // ---- GENERIC FLAVOR PICKER ----
+                    if (Array.isArray(item.flavors) && item.flavors.length > 0 && !item.prices) {
+                        const cardId = `generic-flavor-card-${index}-${originalItemIndex}`;
+                        const encodedBaseName = encodeURIComponent(item.cartBaseName || item.name);
+                        const encodedSuffix = encodeURIComponent(item.cartSuffix || '');
+                        const flavorButtons = item.flavors.map(flavor => `
+                            <button
+                                class="generic-flavor-btn px-3 py-1.5 text-xs font-semibold border border-[#329da8]/40 rounded-full text-[#329da8] hover:bg-[#329da8] hover:text-white transition"
+                                data-card-id="${cardId}"
+                                data-flavor="${encodeURIComponent(flavor)}"
+                                data-base-name="${encodedBaseName}"
+                                data-price="${item.price}"
+                                data-cart-suffix="${encodedSuffix}">
+                                ${flavor}
+                            </button>
+                        `).join('');
+
+                        itemCard.innerHTML = `
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-gray-800 text-lg flex items-center flex-wrap gap-2">${item.name}${bestSellerBadge}</h3>
+                                ${getAdminControls(index, originalItemIndex)}
+                            </div>
+                            ${(item.ingredients || item.description) ? `<p class="text-xs text-gray-400 mt-0.5 italic mb-2">${item.ingredients || item.description}</p>` : ''}
+                            <p class="text-[#329da8] font-medium mb-2">₹${item.price}</p>
+                            <div id="${cardId}-flavors" class="flex flex-wrap gap-2">${flavorButtons}</div>
+                            <p id="${cardId}-msg" class="text-xs text-green-600 font-semibold mt-2 hidden">Added to cart! ✓</p>
+                        `;
+
+                        itemCard.querySelectorAll('.generic-flavor-btn').forEach(btn => {
+                            btn.addEventListener('click', () => addGenericFlavor(btn));
+                        });
+
+                        itemsGrid.appendChild(itemCard);
+                        return;
+                    }
 
                     // Check if it's a bar item with multiple prices
                     if (item.prices) {
                         let pricesHTML = '';
+                        const nameVariants = item.name.split(' / ').map(v => v.trim());
                         item.prices.forEach(p => {
-                            pricesHTML += `
-                                <div class="flex justify-between items-center py-2 border-b last:border-b-0">
-                                    <div class="flex-1">
-                                        <span class="font-semibold text-gray-700 w-16 inline-block">${p.size}</span>
-                                        <span class="text-[#329da8] font-medium ml-2">₹${p.price}</span>
+                            const priceStr = String(p.price);
+                            if (priceStr.includes('/')) {
+                                // Split price into individual variant prices
+                                const splitPrices = priceStr.split('/').map(v => v.trim());
+                                splitPrices.forEach((sp, i) => {
+                                    const variantName = nameVariants[i] || nameVariants[nameVariants.length - 1];
+                                    const cartName = `${variantName} (${p.size})`;
+                                    pricesHTML += `
+                                        <div class="flex justify-between items-center py-2 border-b last:border-b-0">
+                                            <div class="flex-1">
+                                                <span class="font-semibold text-gray-700 text-sm">${variantName}</span>
+                                                <span class="text-xs text-gray-400 ml-1">${p.size}</span>
+                                                <span class="text-[#329da8] font-medium ml-2">₹${sp}</span>
+                                            </div>
+                                            <button onclick="addToCart('${cartName}', ${parseInt(sp)})" class="bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-3 py-1 rounded-lg text-xs font-bold hover:bg-[#329da8] hover:text-white transition">
+                                                ADD +
+                                            </button>
+                                        </div>
+                                    `;
+                                });
+                            } else {
+                                pricesHTML += `
+                                    <div class="flex justify-between items-center py-2 border-b last:border-b-0">
+                                        <div class="flex-1">
+                                            <span class="font-semibold text-gray-700 w-16 inline-block">${p.size}</span>
+                                            <span class="text-[#329da8] font-medium ml-2">₹${p.price}</span>
+                                        </div>
+                                        <button onclick="addToCart('${item.name} (${p.size})', ${p.price})" class="bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-3 py-1 rounded-lg text-xs font-bold hover:bg-[#329da8] hover:text-white transition">
+                                            ADD +
+                                        </button>
                                     </div>
-                                    <button onclick="addToCart('${item.name} (${p.size})', ${p.price})" class="bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-3 py-1 rounded-lg text-xs font-bold hover:bg-[#329da8] hover:text-white transition">
-                                        ADD +
-                                    </button>
-                                </div>
-                            `;
+                                `;
+                            }
                         });
 
                         itemCard.innerHTML = `
@@ -669,12 +1425,12 @@
                     } else { // This is a regular food item
                         const priceDisplay = item.price === "Seasonal" ? "Seasonal" : `₹${item.price}`;
                         const isAddable = item.price !== "Seasonal";
-                        
+
                         // Icon generation
                         let vegIcon = '';
                         if (cat.type !== 'bar') {
-                            const colorClass = item.isVeg ? 'border-green-600' : 'border-red-600';
-                            const dotClass = item.isVeg ? 'bg-green-600' : 'bg-red-600';
+                            const colorClass = item.isEgg ? 'border-yellow-500' : (item.isVeg ? 'border-green-600' : 'border-red-600');
+                            const dotClass = item.isEgg ? 'bg-yellow-500' : (item.isVeg ? 'bg-green-600' : 'bg-red-600');
                             vegIcon = `<div class="border ${colorClass} p-0.5 rounded-sm inline-flex items-center justify-center mr-2 w-4 h-4 align-middle flex-shrink-0"><div class="w-2 h-2 ${dotClass} rounded-full"></div></div>`;
                         }
 
@@ -683,6 +1439,7 @@
                         itemCard.innerHTML = `
                             <div class="flex-1 pr-2">
                                 <h3 class="font-semibold text-gray-800 flex items-center flex-wrap gap-y-1">${vegIcon}${item.name}${bestSellerBadge} ${getAdminControls(index, originalItemIndex)}</h3>
+                                ${(item.ingredients || item.description) ? `<p class="text-xs text-gray-400 mt-0.5 italic">${item.ingredients || item.description}</p>` : ''}
                                 <p class="text-[#329da8] font-medium">${priceDisplay}</p>
                             </div>
                             <div class="flex-shrink-0">
@@ -704,6 +1461,49 @@
                 catSection.appendChild(itemsGrid);
                 menuContainer.appendChild(catSection);
             });
+        }
+
+        function addBreezerflavor(cardId, flavor, drinkName, price, size) {
+            const cartName = `${flavor} ${drinkName} (${size})`;
+            addToCart(cartName, price);
+            // Highlight clicked button briefly
+            const card = document.getElementById(cardId + '-flavors');
+            card.querySelectorAll('.breezer-flavor-btn').forEach(b => {
+                b.classList.remove('bg-pink-500', 'text-white');
+                if (b.textContent.trim() === flavor) b.classList.add('bg-pink-500', 'text-white');
+            });
+            const msg = document.getElementById(cardId + '-msg');
+            msg.textContent = `${flavor} added! ✓`;
+            msg.classList.remove('hidden');
+            setTimeout(() => msg.classList.add('hidden'), 1500);
+        }
+
+        function addGenericFlavor(button) {
+            const cardId = button.dataset.cardId;
+            const flavor = decodeURIComponent(button.dataset.flavor || '');
+            const baseName = decodeURIComponent(button.dataset.baseName || '');
+            const cartSuffix = decodeURIComponent(button.dataset.cartSuffix || '');
+            const price = parseInt(button.dataset.price, 10);
+
+            const cartName = cartSuffix
+                ? `${flavor} ${baseName} (${cartSuffix})`
+                : `${flavor} ${baseName}`;
+            addToCart(cartName, price);
+
+            const card = document.getElementById(cardId + '-flavors');
+            if (card) {
+                card.querySelectorAll('.generic-flavor-btn').forEach(b => {
+                    b.classList.remove('bg-[#329da8]', 'text-white');
+                    if (b === button) b.classList.add('bg-[#329da8]', 'text-white');
+                });
+            }
+
+            const msg = document.getElementById(cardId + '-msg');
+            if (msg) {
+                msg.textContent = `${flavor} added! ✓`;
+                msg.classList.remove('hidden');
+                setTimeout(() => msg.classList.add('hidden'), 1500);
+            }
         }
 
         function renderCart() {
@@ -760,6 +1560,37 @@
             document.getElementById('total-count').innerText = count;
             document.getElementById('total-price').innerText = total;
             document.getElementById('modal-total').innerText = total;
+        }
+
+        // --- Flavor Picker Helpers ---
+        function selectGimletFlavor(cardId, flavor) {
+            const card = document.getElementById(cardId + '-sizes');
+            card.classList.remove('hidden');
+            card.querySelector('.selected-flavor').textContent = flavor;
+            card.querySelectorAll('.size-btn').forEach(btn => {
+                const size = btn.dataset.size;
+                const strength = btn.dataset.strength;
+                const price = parseInt(btn.dataset.price);
+                btn.onclick = () => { addToCart(`${flavor} Gimlet (${size}, ${strength})`, price); };
+            });
+            // Highlight selected flavor
+            const allFlav = card.closest('.bg-white').querySelectorAll('.flavor-btn');
+            allFlav.forEach(b => { b.classList.remove('bg-[#329da8]', 'text-white'); });
+            allFlav.forEach(b => { if (b.textContent.trim() === flavor) { b.classList.add('bg-[#329da8]', 'text-white'); } });
+        }
+
+        function selectSyringeFlavor(cardId, flavor) {
+            const card = document.getElementById(cardId + '-packs');
+            card.classList.remove('hidden');
+            card.querySelector('.selected-flavor').textContent = flavor;
+            card.querySelectorAll('.pack-btn').forEach(btn => {
+                const pack = btn.dataset.pack;
+                const price = parseInt(btn.dataset.price);
+                btn.onclick = () => { addToCart(`${flavor} Kamikaze Syringe Shot (${pack})`, price); };
+            });
+            const allFlav = card.closest('.bg-white').querySelectorAll('.flavor-btn');
+            allFlav.forEach(b => { b.classList.remove('bg-purple-600', 'text-white'); });
+            allFlav.forEach(b => { if (b.textContent.trim() === flavor) { b.classList.add('bg-purple-600', 'text-white'); } });
         }
 
         // --- 5. LOGIC FUNCTIONS ---
@@ -844,12 +1675,12 @@
 
             playSuccessSound();
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            
+
             let total = 0;
             for (const [name, item] of Object.entries(cart)) {
                 total += item.price * item.qty;
             }
-            
+
             // --- SEND TO ADMIN APP ---
             // This sends the order data to your backend server
             const orderPayload = {
@@ -889,9 +1720,12 @@
             const drinkItems = [];
 
             menuData.forEach(cat => {
-                if (cat.type === 'food' || cat.type === 'bites') {
+                // Food should come only from Bar Bites.
+                if (cat.category === 'Bar Bites & Munchies') {
                     cat.items.forEach(item => foodItems.push(item));
-                } else if (cat.type === 'bar') {
+                }
+                // Drink should come only from House Mocktails.
+                if (cat.category === 'House Mocktails') {
                     cat.items.forEach(item => drinkItems.push(item));
                 }
             });
@@ -942,9 +1776,9 @@
 
         function acceptSurprise() {
             if (!surpriseSelection) return;
-            
+
             const { food, drink } = surpriseSelection;
-            
+
             if (food.price !== 0) {
                 addToCart(food.name, food.price);
             }
@@ -972,7 +1806,7 @@
             const v = parseInt(val);
             let msg = "";
             let transform = "none";
-            
+
             // Visual Blur Effect based on drunk level
             const blurAmount = v * 0.8; // 0px to 8px
             document.getElementById('menu-container').style.filter = `blur(${blurAmount}px)`;
@@ -1030,7 +1864,7 @@
         function addItem(catIdx) {
             const name = prompt("Enter Item Name:");
             if (!name) return;
-            
+
             const priceInput = prompt("Enter Price (or JSON for variants e.g. [{'size':'30ml','price':100}]):");
             if (!priceInput) return;
 
@@ -1040,7 +1874,7 @@
             if (priceInput.trim().startsWith('[')) {
                 try {
                     newItem.prices = JSON.parse(priceInput);
-                } catch(e) {
+                } catch (e) {
                     alert("Invalid JSON for variants. Item not added.");
                     return;
                 }
@@ -1101,4 +1935,5 @@
         }
     </script>
 </body>
+
 </html>
