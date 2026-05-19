@@ -1219,7 +1219,7 @@
                 const cat = catName.toLowerCase();
                 const seafoodKeywords = [
                     'fish', 'seafood', 'prawn', 'prawns', 'squid', 'crab',
-                    'anjal', 'pomfret', 'banguda', 'kallur', 'snapper', 'eri'
+                    'anjal', 'pomfret', 'banguda', 'kallur', 'snapper', 'eri',
                 ];
                 return seafoodKeywords.some(k => name.includes(k) || cat.includes(k));
             };
@@ -1228,8 +1228,11 @@
                 const name = itemName.toLowerCase();
                 const cat = catName.toLowerCase();
 
+                // All fish and seafood are strictly non-veg
+                if (isFishOrSeafood(catName, itemName)) return false;
+
                 // Explicit Non-Veg keywords
-                const nvKeywords = ['chicken', 'mutton', 'egg', 'fish', 'prawn', 'squid', 'anjal', 'pomfret', 'kori rotti', 'gravy rotti', 'biryani rice', 'non-veg'];
+                const nvKeywords = ['chicken', 'mutton', 'egg', 'kori rotti', 'gravy rotti', 'biryani rice', 'non-veg'];
 
                 if (nvKeywords.some(k => name.includes(k))) return false;
                 if (cat.includes('non-veg') || cat.includes('chicken') || cat.includes('mutton')) return false;

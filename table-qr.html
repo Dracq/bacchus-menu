@@ -42,7 +42,8 @@
             </div>
         </div>
 
-        <div id="qr-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        <!-- Make the grid strictly 2 columns for the PDF output, with larger spacing -->
+        <div id="qr-grid" class="grid grid-cols-2 gap-8 p-4"></div>
     </div>
 
     <script>
@@ -71,16 +72,16 @@
 
             for (let table = start; table <= end; table++) {
                 const menuLink = buildMenuLink(baseUrl, table);
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(menuLink)}`;
+                // Increase QR code resolution for better print quality
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(menuLink)}`;
 
                 const card = document.createElement('div');
-                card.className = 'card bg-white border rounded-xl p-3 shadow-sm';
+                card.className = 'card bg-white border-2 border-gray-300 rounded-2xl p-6 shadow-md flex flex-col items-center justify-center text-center';
                 card.innerHTML = `
-                    <div class="text-center">
-                        <h2 class="text-lg font-bold text-[#26767e]">Table ${table}</h2>
-                        <img src="${qrUrl}" alt="QR for Table ${table}" class="w-full rounded-lg border mt-2" loading="lazy" />
-                        <p class="text-[10px] text-gray-500 break-all mt-2">${menuLink}</p>
-                    </div>
+                    <h2 class="text-3xl font-black text-gray-800 tracking-wide uppercase mb-4">Table - ${table}</h2>
+                    <img src="${qrUrl}" alt="QR for Table ${table}" class="w-full max-w-[250px] aspect-square rounded-xl border-4 border-[#26767e] shadow-sm mb-4" loading="lazy" />
+                    <h3 class="text-xl font-bold text-[#26767e] italic">Why wait for a waiter?</h3>
+                    <p class="text-[11px] text-gray-400 mt-2 tracking-widest uppercase">Scan to Order</p>
                 `;
                 grid.appendChild(card);
             }
