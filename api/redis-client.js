@@ -19,7 +19,7 @@ async function getRedisClient() {
 
     if (!client) {
         client = createClient({
-            url: process.env.KV_URL || process.env.REDIS_URL,
+            url: process.env.KV_REDIS_URL || process.env.KV_URL || process.env.REDIS_URL,
             socket: {
                 // Limit reconnection attempts to avoid infinite loops
                 reconnectStrategy: (retries) => {
