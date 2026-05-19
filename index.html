@@ -239,8 +239,17 @@
                     <span>Grand Total</span>
                     <span>₹<span id="modal-total">0</span></span>
                 </div>
+                <div id="session-expiry-warning" class="hidden mb-4 bg-red-100 text-red-800 p-3 rounded-lg border border-red-300">
+                    <p class="font-bold text-sm">⏰ Session Expired</p>
+                    <p class="text-xs mt-1">Please re-scan the QR code at your table to continue ordering.</p>
+                </div>
+                <div id="order-error-msg" class="hidden mb-4 bg-red-100 text-red-800 p-3 rounded-lg border border-red-300">
+                    <p class="font-bold text-sm">⚠️ Order Failed</p>
+                    <p class="text-xs mt-1" id="order-error-text">Something went wrong. Please try again.</p>
+                </div>
                 <button onclick="placeOrder()"
-                    class="w-full bg-[#329da8] text-white py-3 rounded-lg font-bold hover:bg-[#26767e] shadow-lg">
+                    id="place-order-btn"
+                    class="w-full bg-[#329da8] text-white py-3 rounded-lg font-bold hover:bg-[#26767e] shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">
                     Place Order (Notify Waiter) <i class="fas fa-utensils ml-2"></i>
                 </button>
             </div>
@@ -279,6 +288,9 @@
     </div>
 
 
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[60] flex flex-col gap-2 items-center pointer-events-none"></div>
+
     <!-- Admin Footer -->
     <div class="text-center py-8 text-gray-300 text-xs">
         <button onclick="toggleAdmin()" class="hover:text-gray-500 transition">Admin Access</button>
@@ -291,12 +303,152 @@
         // --- 2. STATE MANAGEMENT ---
         let cart = {}; // Object to store items: { "Item Name": { price: 100, qty: 2 } }
         let tableNumber = null;
+        let currentZone = null;
         let currentType = 'food';
         let searchQuery = "";
         let dietFilter = 'all';
         let isAdmin = false;
         let logoClicks = 0;
+        let sessionToken = null;  // Redis-backed session token
+        let sessionInvalid = false; // Tracks if session has been rejected by server
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // --- ZONE AND PRICING MANAGEMENT ---
+        const ZONE_TABLE_RANGES = {
+            hut: [ [63, 75], [111, 120] ]
+        };
+
+        function getZone(num) {
+            const n = Number(num);
+            if (!Number.isInteger(n) || n <= 0) return null; // Must be positive integer
+            if (ZONE_TABLE_RANGES.hut.some(([start, end]) => n >= start && n <= end)) {
+                return 'hut';
+            }
+            return 'garden'; // Default all other positive table numbers to garden
+        }
+
+        function getItemPrice(item, zone) {
+            if (item.zonePrices && item.zonePrices[zone] !== undefined) {
+                return item.zonePrices[zone];
+            }
+            return item.price;
+        }
+
+
+        // --- SESSION MANAGEMENT (Redis-backed, 90-min inactivity TTL) ---
+        // Session token is stored in localStorage; Redis is the source of truth for expiry.
+        // No cookies needed — Redis TTL handles expiration server-side.
+        const LS_TABLE_KEY = 'bacchus.tableId';
+        const LS_TOKEN_KEY = 'bacchus.sessionToken';
+
+        /**
+         * Create or restore a session for this table.
+         * - If localStorage has a token for this table, reuse it.
+         * - Otherwise, generate a new token and POST to /api/session.
+         */
+        async function initSession(tableId) {
+            const storedTable = localStorage.getItem(LS_TABLE_KEY);
+            const storedToken = localStorage.getItem(LS_TOKEN_KEY);
+
+            // Reuse existing token if it's for the same table
+            if (storedToken && storedTable === String(tableId)) {
+                sessionToken = storedToken;
+                // Re-register with server (idempotent — refreshes TTL if still valid)
+                try {
+                    const res = await fetch('/api/session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ table: tableId, sessionToken: storedToken })
+                    });
+                    if (res.ok) {
+                        console.log('[SESSION] Restored existing session for table', tableId);
+                        return;
+                    }
+                    // If server rejects the old token, fall through to create new
+                    console.warn('[SESSION] Old token rejected, creating new session');
+                } catch (e) {
+                    console.warn('[SESSION] Could not verify old token:', e);
+                }
+            }
+
+            // Generate new session token
+            sessionToken = crypto.randomUUID();
+            localStorage.setItem(LS_TABLE_KEY, String(tableId));
+            localStorage.setItem(LS_TOKEN_KEY, sessionToken);
+
+            try {
+                const res = await fetch('/api/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ table: tableId, sessionToken: sessionToken })
+                });
+                if (res.ok) {
+                    console.log('[SESSION] Created new session for table', tableId);
+                } else {
+                    const data = await res.json();
+                    console.error('[SESSION] Failed to create session:', data.error);
+                }
+            } catch (e) {
+                console.error('[SESSION] Network error creating session:', e);
+            }
+        }
+
+        /**
+         * Clear session from localStorage. Called when server returns 403.
+         */
+        function clearSession() {
+            localStorage.removeItem(LS_TABLE_KEY);
+            localStorage.removeItem(LS_TOKEN_KEY);
+            sessionToken = null;
+            sessionInvalid = true;
+            cart = {};
+        }
+
+        /**
+         * Handle session expiry from server 403 response.
+         * Clears session, shows warning UI, disables ordering.
+         */
+        function handleSessionExpired(errorMsg) {
+            clearSession();
+            // Show warning in cart modal
+            const warningDiv = document.getElementById('session-expiry-warning');
+            const placeOrderBtn = document.getElementById('place-order-btn');
+            warningDiv.classList.remove('hidden');
+            placeOrderBtn.setAttribute('disabled', 'true');
+            // Show toast
+            showToast(errorMsg || 'Session expired. Please scan the table QR code again.', 'error', 5000);
+            renderCart();
+        }
+
+        /**
+         * Show a toast notification.
+         * @param {string} message
+         * @param {'success'|'error'|'warning'|'info'} type
+         * @param {number} duration - ms
+         */
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                warning: 'bg-yellow-500 text-gray-900',
+                info: 'bg-gray-800'
+            };
+            toast.className = `${colors[type] || colors.info} text-white px-5 py-3 rounded-xl shadow-xl text-sm font-semibold pointer-events-auto max-w-xs text-center transition-all duration-300 transform translate-y-[-10px] opacity-0`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-[-10px]', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            // Auto-remove
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-10px]', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
 
         // Default Menu Data
         let menuData = [
@@ -447,29 +599,29 @@
                 { name: "Paneer Banjara Kabab", price: 280 }
             ]},
             { category: "Chicken Starters", items: [
-                { name: "Chicken Manchurian/Chilly (Bone)", price: 210 },
-                { name: "Chicken Pepper Fry", price: 210 },
-                { name: "Chicken 65", price: 220 },
-                { name: "Chicken Oil Kabab", price: 230 },
+                { name: "Chicken Manchurian/Chilly (Bone)", price: 210, zonePrices:{hut:215} },
+                { name: "Chicken Pepper Fry", price: 210,    zonePrices:{hut:215} },
+                { name: "Chicken 65", price: 220, zonePrices:{hut:215} },
+                { name: "Chicken Oil Kabab", price: 230, zonePrices:{hut:240} },
                 { name: "Chicken Urval (Bone)", price: 300 },
                 { name: "Chicken Lollypop", price: 230 },
-                { name: "Chicken Garlic Dry", price: 230 },
-                { name: "Chicken Ginger Dry", price: 220 },
-                { name: "Chicken Butter Garlic", price: 320 },
-                { name: "Chicken Tava", price: 270 },
+                { name: "Chicken Garlic Dry", price: 230, },
+                { name: "Chicken Ginger Dry", price: 220,zonePrices:{hut:230} },
+                { name: "Chicken Butter Garlic", price: 320,zonePrices:{hut:330} },
+                { name: "Chicken Tava", price: 270,zonePrices:{hut:280} },
                 { name: "Chicken Pudina Dry", price: 230 },
                 { name: "Chicken Hot Pan", price: 350 },
                 { name: "Angels of Heaven", price: 270 },
                 { name: "Spicy Chilly Kabab", price: 350 }
-            ]},
+            ]}, 
             { category: "Chicken Tandoori", items: [
-                { name: "Chicken Tandoori (Full)", price: 480 },
-                { name: "Chicken Tandoori (Half)", price: 260 },
+                { name: "Chicken Tandoori (Full)", price: 480,zonePrices:{hut:490} },
+                { name: "Chicken Tandoori (Half)", price: 260 ,zonePrices:{hut:265} },
                 { name: "Chicken Tikka", price: 250 },
                 { name: "Chicken Malai Kabab", price: 280 },
-                { name: "Chicken Banjara Kabab", price: 260 },
+                { name: "Chicken Banjara Kabab", price: 260, zonePrices:{hut:270} },
                 { name: "Chicken Tandoori Kabab (Bone)", price: 280 },
-                { name: "Chicken Hariyali Kabab", price: 260 },
+                { name: "Chicken Hariyali Kabab", price: 260,zonePrices:{hut:270} },
                 { name: "Chicken Tangdi Kabab (1pc)", price: 180 },
                 { name: "Chicken Kalmi Kabab (2pcs)", price: 240 },
                 { name: "Chicken Kalmi Kabab (1pc)", price: 120 },
@@ -1107,34 +1259,42 @@
             });
 
             // Get table from URL QR (e.g., ?table=5); validate to prevent invalid values.
-            const GARDEN_TABLE_RANGES = [
-                [30, 62],
-                [76, 84],
-                [85, 95],
-                [101, 110]
-            ];
-
-            const isGardenTableNumber = (num) => GARDEN_TABLE_RANGES.some(([start, end]) => num >= start && num <= end);
-            const gardenRangeText = "30-62, 76-84, 85-95, 101-110";
-
             const urlParams = new URLSearchParams(window.location.search);
             const tableParam = (urlParams.get('table') || '').trim();
             const parsedTable = parseInt(tableParam.replace(/[^0-9]/g, ''), 10);
+            
+            const validRangeText = "e.g., 45";
 
-            if (!Number.isNaN(parsedTable) && isGardenTableNumber(parsedTable)) {
+            if (!Number.isNaN(parsedTable) && getZone(parsedTable) !== null) {
                 tableNumber = String(parsedTable);
+                currentZone = getZone(parsedTable);
             } else {
-                let promptValue = prompt(`Please enter your Garden Table Number (${gardenRangeText}):`);
+                let promptValue = prompt(`Please enter your Table Number (${validRangeText}):`);
                 let enteredTable = parseInt((promptValue || '').replace(/[^0-9]/g, ''), 10);
 
-                while (promptValue !== null && (Number.isNaN(enteredTable) || !isGardenTableNumber(enteredTable))) {
-                    promptValue = prompt(`Invalid table. Enter a valid Garden Table Number (${gardenRangeText}):`);
+                while (promptValue !== null && (Number.isNaN(enteredTable) || getZone(enteredTable) === null)) {
+                    promptValue = prompt(`Invalid table. Enter a valid Table Number (${validRangeText}):`);
                     enteredTable = parseInt((promptValue || '').replace(/[^0-9]/g, ''), 10);
                 }
 
-                tableNumber = promptValue === null ? "Walk-in" : String(enteredTable);
+                if (promptValue === null) {
+                    tableNumber = "Walk-in";
+                    currentZone = "garden"; // Default for walk-ins
+                } else {
+                    tableNumber = String(enteredTable);
+                    currentZone = getZone(enteredTable);
+                }
             }
-            document.getElementById('table-display').innerText = tableNumber;
+            
+            // Format table display with zone
+            const zoneDisplay = currentZone ? currentZone.charAt(0).toUpperCase() + currentZone.slice(1) : '';
+            document.getElementById('table-display').innerText = tableNumber !== "Walk-in" ? `${tableNumber} (${zoneDisplay})` : tableNumber;
+
+            // Initialize Redis-backed session (async, non-blocking)
+            // Session is created immediately on page load so it's ready before first order
+            if (tableNumber !== "Walk-in") {
+                initSession(tableNumber);
+            }
 
             setMenuType('food');
             setDietFilter('all');
@@ -1255,12 +1415,12 @@
                         ).join('');
                         const p = item.pricing;
                         const sizeRows = [
-                            {label:'Mug — Lite',  price:p.mug.lite,   size:'Mug',     strength:'Lite'},
-                            {label:'Mug — Strong',price:p.mug.strong, size:'Mug',     strength:'Strong'},
-                            {label:'Pitcher — Lite',  price:p.pitcher.lite,   size:'Pitcher',strength:'Lite'},
-                            {label:'Pitcher — Strong',price:p.pitcher.strong, size:'Pitcher',strength:'Strong'},
-                            {label:'Tower — Lite',  price:p.tower.lite,   size:'Tower',  strength:'Lite'},
-                            {label:'Tower — Strong',price:p.tower.strong, size:'Tower',  strength:'Strong'},
+                            {label:'Mug — Lite',  price: getItemPrice({price: p.mug.lite, zonePrices: p.mug.liteZonePrices}, currentZone),   size:'Mug',     strength:'Lite'},
+                            {label:'Mug — Strong',price: getItemPrice({price: p.mug.strong, zonePrices: p.mug.strongZonePrices}, currentZone), size:'Mug',     strength:'Strong'},
+                            {label:'Pitcher — Lite',  price: getItemPrice({price: p.pitcher.lite, zonePrices: p.pitcher.liteZonePrices}, currentZone),   size:'Pitcher',strength:'Lite'},
+                            {label:'Pitcher — Strong',price: getItemPrice({price: p.pitcher.strong, zonePrices: p.pitcher.strongZonePrices}, currentZone), size:'Pitcher',strength:'Strong'},
+                            {label:'Tower — Lite',  price: getItemPrice({price: p.tower.lite, zonePrices: p.tower.liteZonePrices}, currentZone),   size:'Tower',  strength:'Lite'},
+                            {label:'Tower — Strong',price: getItemPrice({price: p.tower.strong, zonePrices: p.tower.strongZonePrices}, currentZone), size:'Tower',  strength:'Strong'},
                         ];
                         const sizeHTML = sizeRows.map(r =>
                             `<div class="flex justify-between items-center py-1.5 border-b last:border-b-0">
@@ -1295,11 +1455,12 @@
                         const flavBtns = item.flavors.map(f =>
                             `<button class="flavor-btn px-2 py-1.5 text-xs font-semibold border border-purple-400/50 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition" onclick="selectSyringeFlavor('${cardId}','${f}')"> ${f}</button>`
                         ).join('');
-                        const packHTML = item.packs.map(pk =>
-                            `<button class="pack-btn flex-1 py-2 text-sm font-bold border border-purple-400/50 rounded-xl text-purple-700 hover:bg-purple-600 hover:text-white transition" data-pack="${pk.label}" data-price="${pk.price}">
-                                ${pk.label}<br><span class="text-xs font-normal">₹${pk.price}</span>
-                            </button>`
-                        ).join('');
+                        const packHTML = item.packs.map(pk => {
+                            const resolvedPrice = getItemPrice(pk, currentZone);
+                            return `<button class="pack-btn flex-1 py-2 text-sm font-bold border border-purple-400/50 rounded-xl text-purple-700 hover:bg-purple-600 hover:text-white transition" data-pack="${pk.label}" data-price="${resolvedPrice}">
+                                ${pk.label}<br><span class="text-xs font-normal">₹${resolvedPrice}</span>
+                            </button>`;
+                        }).join('');
                         itemCard.innerHTML = `
                             <div class="flex items-center gap-2 mb-3">
                                 <span class="text-2xl">💉</span>
@@ -1320,16 +1481,17 @@
 
                     // ---- BREEZER FLAVOR PICKER ----
                     if (item.type === 'breezer_flavor') {
+                        const resolvedPrice = getItemPrice(item, currentZone);
                         const cardId = `breezer-card-${index}-${originalItemIndex}`;
                         const flavBtns = item.flavors.map(f =>
-                            `<button class="breezer-flavor-btn px-3 py-1.5 text-xs font-semibold border border-pink-400/50 rounded-full text-pink-600 hover:bg-pink-500 hover:text-white transition" onclick="addBreezerflavor('${cardId}','${f}','${item.name}',${item.price},'${item.size}')">${f}</button>`
+                            `<button class="breezer-flavor-btn px-3 py-1.5 text-xs font-semibold border border-pink-400/50 rounded-full text-pink-600 hover:bg-pink-500 hover:text-white transition" onclick="addBreezerflavor('${cardId}','${f}','${item.name}',${resolvedPrice},'${item.size}')">${f}</button>`
                         ).join('');
                         itemCard.innerHTML = `
                             <div class="flex items-center gap-2 mb-3">
                                 <span class="text-2xl">🍹</span>
                                 <div>
                                     <h3 class="font-bold text-gray-800">${item.name}</h3>
-                                    <p class="text-xs text-gray-400">180ml &middot; ₹${item.price} &middot; Choose flavour</p>
+                                    <p class="text-xs text-gray-400">180ml &middot; ₹${resolvedPrice} &middot; Choose flavour</p>
                                 </div>
                             </div>
                             <div id="${cardId}-flavors" class="flex flex-wrap gap-2">${flavBtns}</div>
@@ -1341,6 +1503,7 @@
 
                     // ---- GENERIC FLAVOR PICKER ----
                     if (Array.isArray(item.flavors) && item.flavors.length > 0 && !item.prices) {
+                        const resolvedPrice = getItemPrice(item, currentZone);
                         const cardId = `generic-flavor-card-${index}-${originalItemIndex}`;
                         const encodedBaseName = encodeURIComponent(item.cartBaseName || item.name);
                         const encodedSuffix = encodeURIComponent(item.cartSuffix || '');
@@ -1350,7 +1513,7 @@
                                 data-card-id="${cardId}"
                                 data-flavor="${encodeURIComponent(flavor)}"
                                 data-base-name="${encodedBaseName}"
-                                data-price="${item.price}"
+                                data-price="${resolvedPrice}"
                                 data-cart-suffix="${encodedSuffix}">
                                 ${flavor}
                             </button>
@@ -1362,7 +1525,7 @@
                                 ${getAdminControls(index, originalItemIndex)}
                             </div>
                             ${(item.ingredients || item.description) ? `<p class="text-xs text-gray-400 mt-0.5 italic mb-2">${item.ingredients || item.description}</p>` : ''}
-                            <p class="text-[#329da8] font-medium mb-2">₹${item.price}</p>
+                            <p class="text-[#329da8] font-medium mb-2">₹${resolvedPrice}</p>
                             <div id="${cardId}-flavors" class="flex flex-wrap gap-2">${flavorButtons}</div>
                             <p id="${cardId}-msg" class="text-xs text-green-600 font-semibold mt-2 hidden">Added to cart! ✓</p>
                         `;
@@ -1380,7 +1543,8 @@
                         let pricesHTML = '';
                         const nameVariants = item.name.split(' / ').map(v => v.trim());
                         item.prices.forEach(p => {
-                            const priceStr = String(p.price);
+                            const resolvedPrice = getItemPrice(p, currentZone);
+                            const priceStr = String(resolvedPrice);
                             if (priceStr.includes('/')) {
                                 // Split price into individual variant prices
                                 const splitPrices = priceStr.split('/').map(v => v.trim());
@@ -1405,9 +1569,9 @@
                                     <div class="flex justify-between items-center py-2 border-b last:border-b-0">
                                         <div class="flex-1">
                                             <span class="font-semibold text-gray-700 w-16 inline-block">${p.size}</span>
-                                            <span class="text-[#329da8] font-medium ml-2">₹${p.price}</span>
+                                            <span class="text-[#329da8] font-medium ml-2">₹${resolvedPrice}</span>
                                         </div>
-                                        <button onclick="addToCart('${item.name} (${p.size})', ${p.price})" class="bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-3 py-1 rounded-lg text-xs font-bold hover:bg-[#329da8] hover:text-white transition">
+                                        <button onclick="addToCart('${item.name} (${p.size})', ${resolvedPrice})" class="bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-3 py-1 rounded-lg text-xs font-bold hover:bg-[#329da8] hover:text-white transition">
                                             ADD +
                                         </button>
                                     </div>
@@ -1423,8 +1587,9 @@
                             <div class="mt-2">${pricesHTML}</div>
                         `;
                     } else { // This is a regular food item
-                        const priceDisplay = item.price === "Seasonal" ? "Seasonal" : `₹${item.price}`;
-                        const isAddable = item.price !== "Seasonal";
+                        const resolvedPrice = getItemPrice(item, currentZone);
+                        const priceDisplay = resolvedPrice === "Seasonal" ? "Seasonal" : `₹${resolvedPrice}`;
+                        const isAddable = resolvedPrice !== "Seasonal";
 
                         // Icon generation
                         let vegIcon = '';
@@ -1443,7 +1608,7 @@
                                 <p class="text-[#329da8] font-medium">${priceDisplay}</p>
                             </div>
                             <div class="flex-shrink-0">
-                                ${isAddable ? `<button onclick="addToCart('${item.name}', ${item.price})" class="bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#329da8] hover:text-white transition">ADD +</button>` : '<span class="text-xs text-gray-500">Ask Server</span>'}
+                                ${isAddable ? `<button onclick="addToCart('${item.name}', ${resolvedPrice})" class="bg-[#329da8]/10 text-[#329da8] border border-[#329da8]/30 px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#329da8] hover:text-white transition">ADD +</button>` : '<span class="text-xs text-gray-500">Ask Server</span>'}
                             </div>
                         `;
                     }
@@ -1651,65 +1816,144 @@
             document.getElementById('cart-modal').classList.add('hidden');
         }
 
-        function callWaiter() {
-            // --- SEND TO ADMIN APP ---
-            const adminChannel = new BroadcastChannel('bacchus_admin_channel');
-            adminChannel.postMessage({
-                type: 'CALL_WAITER',
-                table: tableNumber,
-                timestamp: new Date().toISOString()
-            });
+        async function callWaiter() {
+            // --- Check session ---
+            if (!sessionToken || sessionInvalid) {
+                handleSessionExpired('Session expired. Please scan the table QR code again.');
+                return;
+            }
 
-            // --- SEND TO SERVER ---
-            fetch('/api/waiter', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ table: tableNumber })
-            }).catch(err => console.error("Server Error:", err));
+            // --- SEND TO SERVER (with session validation) ---
+            try {
+                const res = await fetch('/api/waiter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        table: tableNumber,
+                        sessionToken: sessionToken
+                    })
+                });
 
-            alert("Waiter has been notified!");
+                if (res.status === 403) {
+                    const data = await res.json();
+                    handleSessionExpired(data.error);
+                    return;
+                }
+
+                if (res.status === 429) {
+                    const data = await res.json();
+                    showToast(data.error || 'Waiter has already been called recently.', 'warning', 3000);
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error(`Server returned ${res.status}`);
+                }
+
+                // --- SEND TO ADMIN APP (INSTANT LOCAL via BroadcastChannel) ---
+                try {
+                    const adminChannel = new BroadcastChannel('bacchus_admin_channel');
+                    adminChannel.postMessage({
+                        type: 'CALL_WAITER',
+                        table: tableNumber,
+                        timestamp: new Date().toISOString()
+                    });
+                } catch (e) { /* BroadcastChannel not supported — ignore */ }
+
+                showToast('Waiter has been notified!', 'success');
+
+            } catch (err) {
+                console.error('[WAITER] Error:', err);
+                showToast('Could not reach server. Please try again.', 'error');
+            }
         }
 
-        function placeOrder() {
+        async function placeOrder() {
             if (Object.keys(cart).length === 0) return;
 
-            playSuccessSound();
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            // --- Check session ---
+            if (!sessionToken || sessionInvalid) {
+                handleSessionExpired('Session expired. Please scan the table QR code again.');
+                return;
+            }
+
+            // Disable button to prevent double-click
+            const placeOrderBtn = document.getElementById('place-order-btn');
+            const orderErrorMsg = document.getElementById('order-error-msg');
+            const orderErrorText = document.getElementById('order-error-text');
+            placeOrderBtn.setAttribute('disabled', 'true');
+            placeOrderBtn.textContent = 'Sending...';
+            orderErrorMsg.classList.add('hidden');
 
             let total = 0;
             for (const [name, item] of Object.entries(cart)) {
                 total += item.price * item.qty;
             }
 
-            // --- SEND TO ADMIN APP ---
-            // This sends the order data to your backend server
+            // Generate unique orderId for duplicate protection
+            const orderId = crypto.randomUUID();
+
             const orderPayload = {
                 table: tableNumber,
-                items: cart,
-                total: total,
-                timestamp: new Date().toISOString()
-            };
-
-            fetch('/api/orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderPayload)
-            }).catch(err => console.error("Failed to send order to admin system:", err));
-            // -------------------------
-
-            // --- SEND TO ADMIN APP (INSTANT LOCAL) ---
-            const adminChannel = new BroadcastChannel('bacchus_admin_channel');
-            adminChannel.postMessage({
-                type: 'NEW_ORDER',
-                table: tableNumber,
+                sessionToken: sessionToken,
+                orderId: orderId,
+                zone: currentZone,
                 items: cart,
                 total: total
-            });
+            };
 
-            alert("Order sent to kitchen!");
-            cart = {};
-            renderCart();
-            closeCartModal();
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderPayload)
+                });
+
+                // --- Handle session expiry ---
+                if (res.status === 403) {
+                    const data = await res.json();
+                    handleSessionExpired(data.error);
+                    placeOrderBtn.textContent = 'Place Order (Notify Waiter)';
+                    return;
+                }
+
+                // --- Handle server errors ---
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data.error || `Server error ${res.status}`);
+                }
+
+                // --- SUCCESS: Order persisted in Redis ---
+                playSuccessSound();
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+                // Send to admin via BroadcastChannel (instant local notification)
+                try {
+                    const adminChannel = new BroadcastChannel('bacchus_admin_channel');
+                    adminChannel.postMessage({
+                        type: 'NEW_ORDER',
+                        table: tableNumber,
+                        items: cart,
+                        total: total
+                    });
+                } catch (e) { /* BroadcastChannel not supported — ignore */ }
+
+                showToast('Order sent to kitchen!', 'success');
+                cart = {};
+                renderCart();
+                closeCartModal();
+
+            } catch (err) {
+                console.error('[ORDER] Error:', err);
+                // Show error in cart modal so customer knows order FAILED
+                orderErrorText.textContent = err.message || 'Something went wrong. Please try again.';
+                orderErrorMsg.classList.remove('hidden');
+                showToast('Order failed. Please try again.', 'error', 4000);
+            } finally {
+                // Re-enable button
+                placeOrderBtn.removeAttribute('disabled');
+                placeOrderBtn.innerHTML = 'Place Order (Notify Waiter) <i class="fas fa-utensils ml-2"></i>';
+            }
         }
 
         // --- 7. SURPRISE ME LOGIC ---

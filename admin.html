@@ -204,7 +204,12 @@
             const modalTitle = document.getElementById('modal-title');
             const modalContent = document.getElementById('modal-content');
 
-            modalTitle.innerText = `Table ${num} - ${data.type === 'ORDER' ? 'New Order' : 'Waiter Requested'}`;
+            let zoneText = '';
+            if (data.type === 'ORDER' && data.orders && data.orders.length > 0 && data.orders[0].zone) {
+                const zone = data.orders[0].zone;
+                zoneText = ` (${zone.charAt(0).toUpperCase() + zone.slice(1)})`;
+            }
+            modalTitle.innerText = `Table ${num}${zoneText} - ${data.type === 'ORDER' ? 'New Order' : 'Waiter Requested'}`;
             
             if (data.type === 'ORDER') {
                 let allOrdersHtml = '';

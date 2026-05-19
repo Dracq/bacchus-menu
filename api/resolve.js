@@ -1,17 +1,4 @@
-const { createClient } = require('redis');
-
-let client = null;
-
-async function getRedisClient() {
-    if (!client) {
-        client = createClient({
-            url: process.env.REDIS_URL || process.env.KV_URL
-        });
-        client.on('error', err => console.error('Redis Client Error', err));
-        await client.connect();
-    }
-    return client;
-}
+const { getRedisClient } = require('./redis-client');
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
